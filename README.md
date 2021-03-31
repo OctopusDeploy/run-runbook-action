@@ -49,11 +49,11 @@ steps:
 
 ## Action Inputs
 
-The following inputs are required:
+The following input is required:
 
-| Name | Description | Default |
-| :- | :- | :-: |
-| `project` | The name or ID of the project associated with this runbook. | |
+| Name | Description |
+| :- | :- |
+| `project` | The name or ID of the project associated with this runbook. |
 
 The following inputs are optional:
 
