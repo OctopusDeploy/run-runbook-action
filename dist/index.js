@@ -1,215 +1,6 @@
-require('./sourcemap-register.js');module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
-
-/***/ 109:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(186));
-const octopus = __importStar(__nccwpck_require__(662));
-const inputs = __importStar(__nccwpck_require__(389));
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const inputParameters = inputs.get();
-            yield octopus.runRunbook(inputParameters);
-        }
-        catch (error) {
-            core.setFailed(error.message);
-        }
-    });
-}
-run();
-
-
-/***/ }),
-
-/***/ 662:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.runRunbook = void 0;
-const core = __importStar(__nccwpck_require__(186));
-const exec = __importStar(__nccwpck_require__(514));
-function getArgs(parameters) {
-    core.info('🔣 Parsing inputs...');
-    const args = ['run-runbook'];
-    if (parameters.apiKey.length > 0)
-        args.push(`--apiKey=${parameters.apiKey}`);
-    if (parameters.cancelOnTimeout)
-        args.push(`--cancelOnTimeout`);
-    if (parameters.configFile.length > 0)
-        args.push(`--configFile=${parameters.configFile}`);
-    if (parameters.debug)
-        args.push(`--debug`);
-    if (parameters.environments.length > 0) {
-        for (const iterator of parameters.environments.split(',')) {
-            if (iterator.length > 0) {
-                args.push(`--environment=${iterator}`);
-            }
-        }
-    }
-    if (parameters.excludeMachines.length > 0)
-        args.push(`--excludeMachines=${parameters.excludeMachines}`);
-    if (parameters.forcePackageDownload)
-        args.push(`--forcePackageDownload`);
-    if (parameters.guidedFailure)
-        args.push(`--guidedFailure=True`);
-    if (parameters.ignoreSslErrors)
-        args.push(`--ignoreSslErrors`);
-    if (parameters.logLevel.length > 0 && parameters.logLevel !== `debug`)
-        args.push(`--logLevel=${parameters.logLevel}`);
-    if (parameters.noRawLog)
-        args.push(`--noRawLog`);
-    if (parameters.noRunAfter.length > 0)
-        args.push(`--noRunAfter=${parameters.noRunAfter}`);
-    if (parameters.password.length > 0)
-        args.push(`--pass=${parameters.password}`);
-    if (parameters.project.length > 0)
-        args.push(`--project=${parameters.project}`);
-    if (parameters.proxy.length > 0)
-        args.push(`--proxy=${parameters.proxy}`);
-    if (parameters.proxyPassword.length > 0)
-        args.push(`--proxyPass=${parameters.proxyPassword}`);
-    if (parameters.proxyUsername.length > 0)
-        args.push(`--proxyUser=${parameters.proxyUsername}`);
-    if (parameters.rawLogFile.length > 0)
-        args.push(`--rawLogFile=${parameters.rawLogFile}`);
-    if (parameters.runAt.length > 0)
-        args.push(`--runAt=${parameters.runAt}`);
-    if (parameters.runbook.length > 0)
-        args.push(`--runbook=${parameters.runbook}`);
-    if (parameters.runCheckSleepCycle.length > 0)
-        args.push(`--runCheckSleepCycle=${parameters.runCheckSleepCycle}`);
-    if (parameters.runTimeout.length > 0)
-        args.push(`--runTimeout=${parameters.runTimeout}`);
-    if (parameters.server.length > 0)
-        args.push(`--server=${parameters.server}`);
-    if (parameters.showProgress)
-        args.push(`--progress`);
-    if (parameters.skip.length > 0)
-        args.push(`--skip=${parameters.skip}`);
-    if (parameters.snapshot.length > 0)
-        args.push(`--snapshot=${parameters.snapshot}`);
-    if (parameters.space.length > 0)
-        args.push(`--space=${parameters.space}`);
-    if (parameters.specificMachines.length > 0)
-        args.push(`--specificMachines=${parameters.specificMachines}`);
-    if (parameters.tenant.length > 0)
-        args.push(`--tenant=${parameters.tenant}`);
-    if (parameters.tenantTag.length > 0)
-        args.push(`--tenantTag=${parameters.tenantTag}`);
-    if (parameters.timeout.length > 0 && parameters.timeout !== `600`)
-        args.push(`--timeout=${parameters.timeout}`);
-    if (parameters.username.length > 0)
-        args.push(`--user=${parameters.username}`);
-    if (parameters.variable.length > 0)
-        args.push(`--variable=${parameters.variable}`);
-    if (parameters.waitForRun)
-        args.push(`--waitForRun`);
-    return args;
-}
-function runRunbook(parameters) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const args = getArgs(parameters);
-        const options = {
-            ignoreReturnCode: true,
-            listeners: {
-                errline: (line) => {
-                    core.error(line);
-                },
-                stdline: (line) => {
-                    if (line.length <= 0)
-                        return;
-                    if (line.includes('Octopus Deploy Command Line Tool')) {
-                        const version = line.split('version ')[1];
-                        core.info(`🐙 Using Octopus Deploy CLI ${version}...`);
-                        return;
-                    }
-                    if (line.includes('Handshaking with Octopus Server')) {
-                        core.info(`🤝 Handshaking with Octopus Deploy`);
-                        return;
-                    }
-                    if (line.includes('Authenticated as:')) {
-                        core.info(`✅ Authenticated`);
-                        return;
-                    }
-                    if (line === 'Done!') {
-                        core.info(`🎉 Runbook complete!`);
-                        return;
-                    }
-                    core.info(line);
-                }
-            },
-            silent: true
-        };
-        yield exec.exec('octo', args, options);
-    });
-}
-exports.runRunbook = runRunbook;
-
-
-/***/ }),
 
 /***/ 351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
@@ -405,6 +196,7 @@ exports.getInput = getInput;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setOutput(name, value) {
+    process.stdout.write(os.EOL);
     command_1.issueCommand('set-output', { name }, value);
 }
 exports.setOutput = setOutput;
@@ -1753,7 +1545,7 @@ function copyFile(srcFile, destFile, force) {
 
 /***/ }),
 
-/***/ 882:
+/***/ 361:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -1806,7 +1598,59 @@ exports.getBooleanInput = getBooleanInput;
 
 /***/ }),
 
-/***/ 389:
+/***/ 148:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(186));
+const octopus = __importStar(__nccwpck_require__(569));
+const inputs = __importStar(__nccwpck_require__(519));
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const inputParameters = inputs.get();
+            yield octopus.runRunbook(inputParameters);
+        }
+        catch (error) {
+            core.setFailed(error.message);
+        }
+    });
+}
+run();
+
+
+/***/ }),
+
+/***/ 519:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 
@@ -1832,7 +1676,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.get = void 0;
 const core = __importStar(__nccwpck_require__(186));
-const get_boolean_input_1 = __nccwpck_require__(882);
+const get_boolean_input_1 = __nccwpck_require__(361);
 function get() {
     return {
         apiKey: core.getInput('api_key'),
@@ -1872,6 +1716,162 @@ function get() {
     };
 }
 exports.get = get;
+
+
+/***/ }),
+
+/***/ 569:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.runRunbook = void 0;
+const core = __importStar(__nccwpck_require__(186));
+const exec = __importStar(__nccwpck_require__(514));
+function getArgs(parameters) {
+    core.info('🔣 Parsing inputs...');
+    const args = ['run-runbook'];
+    if (parameters.apiKey.length > 0)
+        args.push(`--apiKey=${parameters.apiKey}`);
+    if (parameters.cancelOnTimeout)
+        args.push(`--cancelOnTimeout`);
+    if (parameters.configFile.length > 0)
+        args.push(`--configFile=${parameters.configFile}`);
+    if (parameters.debug)
+        args.push(`--debug`);
+    if (parameters.environments.length > 0) {
+        for (const iterator of parameters.environments.split(',')) {
+            if (iterator.length > 0) {
+                args.push(`--environment=${iterator}`);
+            }
+        }
+    }
+    if (parameters.excludeMachines.length > 0)
+        args.push(`--excludeMachines=${parameters.excludeMachines}`);
+    if (parameters.forcePackageDownload)
+        args.push(`--forcePackageDownload`);
+    if (parameters.guidedFailure)
+        args.push(`--guidedFailure=True`);
+    if (parameters.ignoreSslErrors)
+        args.push(`--ignoreSslErrors`);
+    if (parameters.logLevel.length > 0 && parameters.logLevel !== `debug`)
+        args.push(`--logLevel=${parameters.logLevel}`);
+    if (parameters.noRawLog)
+        args.push(`--noRawLog`);
+    if (parameters.noRunAfter.length > 0)
+        args.push(`--noRunAfter=${parameters.noRunAfter}`);
+    if (parameters.password.length > 0)
+        args.push(`--pass=${parameters.password}`);
+    if (parameters.project.length > 0)
+        args.push(`--project=${parameters.project}`);
+    if (parameters.proxy.length > 0)
+        args.push(`--proxy=${parameters.proxy}`);
+    if (parameters.proxyPassword.length > 0)
+        args.push(`--proxyPass=${parameters.proxyPassword}`);
+    if (parameters.proxyUsername.length > 0)
+        args.push(`--proxyUser=${parameters.proxyUsername}`);
+    if (parameters.rawLogFile.length > 0)
+        args.push(`--rawLogFile=${parameters.rawLogFile}`);
+    if (parameters.runAt.length > 0)
+        args.push(`--runAt=${parameters.runAt}`);
+    if (parameters.runbook.length > 0)
+        args.push(`--runbook=${parameters.runbook}`);
+    if (parameters.runCheckSleepCycle.length > 0)
+        args.push(`--runCheckSleepCycle=${parameters.runCheckSleepCycle}`);
+    if (parameters.runTimeout.length > 0)
+        args.push(`--runTimeout=${parameters.runTimeout}`);
+    if (parameters.server.length > 0)
+        args.push(`--server=${parameters.server}`);
+    if (parameters.showProgress)
+        args.push(`--progress`);
+    if (parameters.skip.length > 0)
+        args.push(`--skip=${parameters.skip}`);
+    if (parameters.snapshot.length > 0)
+        args.push(`--snapshot=${parameters.snapshot}`);
+    if (parameters.space.length > 0)
+        args.push(`--space=${parameters.space}`);
+    if (parameters.specificMachines.length > 0)
+        args.push(`--specificMachines=${parameters.specificMachines}`);
+    if (parameters.tenant.length > 0)
+        args.push(`--tenant=${parameters.tenant}`);
+    if (parameters.tenantTag.length > 0)
+        args.push(`--tenantTag=${parameters.tenantTag}`);
+    if (parameters.timeout.length > 0 && parameters.timeout !== `600`)
+        args.push(`--timeout=${parameters.timeout}`);
+    if (parameters.username.length > 0)
+        args.push(`--user=${parameters.username}`);
+    if (parameters.variable.length > 0)
+        args.push(`--variable=${parameters.variable}`);
+    if (parameters.waitForRun)
+        args.push(`--waitForRun`);
+    return args;
+}
+function runRunbook(parameters) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const args = getArgs(parameters);
+        const options = {
+            ignoreReturnCode: true,
+            listeners: {
+                errline: (line) => {
+                    core.error(line);
+                },
+                stdline: (line) => {
+                    if (line.length <= 0)
+                        return;
+                    if (line.includes('Octopus Deploy Command Line Tool')) {
+                        const version = line.split('version ')[1];
+                        core.info(`🐙 Using Octopus Deploy CLI ${version}...`);
+                        return;
+                    }
+                    if (line.includes('Handshaking with Octopus Server')) {
+                        core.info(`🤝 Handshaking with Octopus Deploy`);
+                        return;
+                    }
+                    if (line.includes('Authenticated as:')) {
+                        core.info(`✅ Authenticated`);
+                        return;
+                    }
+                    if (line === 'Done!') {
+                        core.info(`🎉 Runbook complete!`);
+                        return;
+                    }
+                    core.info(line);
+                }
+            },
+            silent: true
+        };
+        yield exec.exec('octo', args, options);
+    });
+}
+exports.runRunbook = runRunbook;
 
 
 /***/ }),
@@ -1933,8 +1933,9 @@ module.exports = require("util");;
 /******/ 	// The require function
 /******/ 	function __nccwpck_require__(moduleId) {
 /******/ 		// Check if module is in cache
-/******/ 		if(__webpack_module_cache__[moduleId]) {
-/******/ 			return __webpack_module_cache__[moduleId].exports;
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
@@ -1959,11 +1960,13 @@ module.exports = require("util");;
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
-/******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
-/******/ 	// module exports must be returned from runtime so entry inlining is disabled
+/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";/************************************************************************/
+/******/ 	
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(109);
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(148);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=index.js.map
