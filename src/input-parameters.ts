@@ -1,5 +1,4 @@
-import * as core from '@actions/core'
-import {getBooleanInput} from './get-boolean-input'
+import {getBooleanInput, getInput} from '@actions/core'
 
 export interface InputParameters {
   apiKey: string
@@ -40,39 +39,39 @@ export interface InputParameters {
 
 export function get(): InputParameters {
   return {
-    apiKey: core.getInput('api_key'),
+    apiKey: getInput('api_key'),
     cancelOnTimeout: getBooleanInput('cancel_on_timeout'),
-    configFile: core.getInput('config_file'),
+    configFile: getInput('config_file'),
     debug: getBooleanInput('debug'),
-    environments: core.getInput('environments'),
-    excludeMachines: core.getInput('exclude_machines'),
+    environments: getInput('environments'),
+    excludeMachines: getInput('exclude_machines'),
     forcePackageDownload: getBooleanInput('force_package_download'),
-    guidedFailure: core.getInput('guided_failure'),
+    guidedFailure: getInput('guided_failure'),
     ignoreSslErrors: getBooleanInput('ignore_ssl_errors'),
-    logLevel: core.getInput('log_level'),
+    logLevel: getInput('log_level'),
     noRawLog: getBooleanInput('no_raw_log'),
-    noRunAfter: core.getInput('no_run_after'),
-    password: core.getInput('password'),
-    project: core.getInput('project'),
-    proxy: core.getInput('proxy'),
-    proxyPassword: core.getInput('proxy_password'),
-    proxyUsername: core.getInput('proxy_username'),
-    rawLogFile: core.getInput('raw_log_file'),
-    runAt: core.getInput('run_at'),
-    runbook: core.getInput('runbook'),
-    runCheckSleepCycle: core.getInput('run_check_sleep_cycle'),
-    runTimeout: core.getInput('run_timeout'),
-    server: core.getInput('server'),
+    noRunAfter: getInput('no_run_after'),
+    password: getInput('password'),
+    project: getInput('project'),
+    proxy: getInput('proxy'),
+    proxyPassword: getInput('proxy_password'),
+    proxyUsername: getInput('proxy_username'),
+    rawLogFile: getInput('raw_log_file'),
+    runAt: getInput('run_at'),
+    runbook: getInput('runbook'),
+    runCheckSleepCycle: getInput('run_check_sleep_cycle'),
+    runTimeout: getInput('run_timeout'),
+    server: getInput('server'),
     showProgress: getBooleanInput('show_progress'),
-    skip: core.getInput('skip'),
-    snapshot: core.getInput('snapshot'),
-    space: core.getInput('space'),
-    specificMachines: core.getInput('specific_machines'),
-    tenant: core.getInput('tenant'),
-    tenantTag: core.getInput('tenant_tag'),
-    timeout: core.getInput('timeout'),
-    username: core.getInput('username'),
-    variable: core.getInput('variable'),
+    skip: getInput('skip'),
+    snapshot: getInput('snapshot'),
+    space: getInput('space'),
+    specificMachines: getInput('specific_machines'),
+    tenant: getInput('tenant'),
+    tenantTag: getInput('tenant_tag'),
+    timeout: getInput('timeout'),
+    username: getInput('username'),
+    variable: getInput('variable'),
     waitForRun: getBooleanInput('wait_for_run')
   }
 }

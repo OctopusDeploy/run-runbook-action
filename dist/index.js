@@ -1660,59 +1660,6 @@ function copyFile(srcFile, destFile, force) {
 
 /***/ }),
 
-/***/ 361:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBooleanInput = void 0;
-/**
- * Gets the input value of the boolean type in the YAML specification.
- * The return value is also in boolean type.
- * ref: https://yaml.org/type/bool.html
- *
- * @param     name     name of the input to get
- * @returns   boolean
- */
-function getBooleanInput(name) {
-    const trueValue = [
-        'true',
-        'True',
-        'TRUE',
-        'yes',
-        'Yes',
-        'YES',
-        'y',
-        'Y',
-        'on',
-        'On',
-        'ON'
-    ];
-    const falseValue = [
-        'false',
-        'False',
-        'FALSE',
-        'no',
-        'No',
-        'NO',
-        'n',
-        'N',
-        'off',
-        'Off',
-        'OFF'
-    ];
-    const val = (process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || '').trim();
-    if (trueValue.includes(val))
-        return true;
-    if (falseValue.includes(val))
-        return false;
-    return false;
-}
-exports.getBooleanInput = getBooleanInput;
-
-
-/***/ }),
-
 /***/ 148:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -1766,68 +1713,48 @@ run();
 /***/ }),
 
 /***/ 519:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.get = void 0;
-const core = __importStar(__nccwpck_require__(186));
-const get_boolean_input_1 = __nccwpck_require__(361);
+const core_1 = __nccwpck_require__(186);
 function get() {
     return {
-        apiKey: core.getInput('api_key'),
-        cancelOnTimeout: get_boolean_input_1.getBooleanInput('cancel_on_timeout'),
-        configFile: core.getInput('config_file'),
-        debug: get_boolean_input_1.getBooleanInput('debug'),
-        environments: core.getInput('environments'),
-        excludeMachines: core.getInput('exclude_machines'),
-        forcePackageDownload: get_boolean_input_1.getBooleanInput('force_package_download'),
-        guidedFailure: core.getInput('guided_failure'),
-        ignoreSslErrors: get_boolean_input_1.getBooleanInput('ignore_ssl_errors'),
-        logLevel: core.getInput('log_level'),
-        noRawLog: get_boolean_input_1.getBooleanInput('no_raw_log'),
-        noRunAfter: core.getInput('no_run_after'),
-        password: core.getInput('password'),
-        project: core.getInput('project'),
-        proxy: core.getInput('proxy'),
-        proxyPassword: core.getInput('proxy_password'),
-        proxyUsername: core.getInput('proxy_username'),
-        rawLogFile: core.getInput('raw_log_file'),
-        runAt: core.getInput('run_at'),
-        runbook: core.getInput('runbook'),
-        runCheckSleepCycle: core.getInput('run_check_sleep_cycle'),
-        runTimeout: core.getInput('run_timeout'),
-        server: core.getInput('server'),
-        showProgress: get_boolean_input_1.getBooleanInput('show_progress'),
-        skip: core.getInput('skip'),
-        snapshot: core.getInput('snapshot'),
-        space: core.getInput('space'),
-        specificMachines: core.getInput('specific_machines'),
-        tenant: core.getInput('tenant'),
-        tenantTag: core.getInput('tenant_tag'),
-        timeout: core.getInput('timeout'),
-        username: core.getInput('username'),
-        variable: core.getInput('variable'),
-        waitForRun: get_boolean_input_1.getBooleanInput('wait_for_run')
+        apiKey: core_1.getInput('api_key'),
+        cancelOnTimeout: core_1.getBooleanInput('cancel_on_timeout'),
+        configFile: core_1.getInput('config_file'),
+        debug: core_1.getBooleanInput('debug'),
+        environments: core_1.getInput('environments'),
+        excludeMachines: core_1.getInput('exclude_machines'),
+        forcePackageDownload: core_1.getBooleanInput('force_package_download'),
+        guidedFailure: core_1.getInput('guided_failure'),
+        ignoreSslErrors: core_1.getBooleanInput('ignore_ssl_errors'),
+        logLevel: core_1.getInput('log_level'),
+        noRawLog: core_1.getBooleanInput('no_raw_log'),
+        noRunAfter: core_1.getInput('no_run_after'),
+        password: core_1.getInput('password'),
+        project: core_1.getInput('project'),
+        proxy: core_1.getInput('proxy'),
+        proxyPassword: core_1.getInput('proxy_password'),
+        proxyUsername: core_1.getInput('proxy_username'),
+        rawLogFile: core_1.getInput('raw_log_file'),
+        runAt: core_1.getInput('run_at'),
+        runbook: core_1.getInput('runbook'),
+        runCheckSleepCycle: core_1.getInput('run_check_sleep_cycle'),
+        runTimeout: core_1.getInput('run_timeout'),
+        server: core_1.getInput('server'),
+        showProgress: core_1.getBooleanInput('show_progress'),
+        skip: core_1.getInput('skip'),
+        snapshot: core_1.getInput('snapshot'),
+        space: core_1.getInput('space'),
+        specificMachines: core_1.getInput('specific_machines'),
+        tenant: core_1.getInput('tenant'),
+        tenantTag: core_1.getInput('tenant_tag'),
+        timeout: core_1.getInput('timeout'),
+        username: core_1.getInput('username'),
+        variable: core_1.getInput('variable'),
+        waitForRun: core_1.getBooleanInput('wait_for_run')
     };
 }
 exports.get = get;
