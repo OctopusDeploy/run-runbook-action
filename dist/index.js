@@ -133,7 +133,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
+exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
 const command_1 = __nccwpck_require__(351);
 const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(278);
@@ -311,19 +311,30 @@ exports.debug = debug;
 /**
  * Adds an error issue
  * @param message error issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
  */
-function error(message) {
-    command_1.issue('error', message instanceof Error ? message.toString() : message);
+function error(message, properties = {}) {
+    command_1.issueCommand('error', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 exports.error = error;
 /**
- * Adds an warning issue
+ * Adds a warning issue
  * @param message warning issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
  */
-function warning(message) {
-    command_1.issue('warning', message instanceof Error ? message.toString() : message);
+function warning(message, properties = {}) {
+    command_1.issueCommand('warning', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 exports.warning = warning;
+/**
+ * Adds a notice issue
+ * @param message notice issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
+ */
+function notice(message, properties = {}) {
+    command_1.issueCommand('notice', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+}
+exports.notice = notice;
 /**
  * Writes info to log with console.log.
  * @param message info message
@@ -455,7 +466,7 @@ exports.issueCommand = issueCommand;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.toCommandValue = void 0;
+exports.toCommandProperties = exports.toCommandValue = void 0;
 /**
  * Sanitizes an input into a string so it can be passed into issueCommand safely
  * @param input input to sanitize into a string
@@ -470,6 +481,25 @@ function toCommandValue(input) {
     return JSON.stringify(input);
 }
 exports.toCommandValue = toCommandValue;
+/**
+ *
+ * @param annotationProperties
+ * @returns The command properties to send with the actual annotation command
+ * See IssueCommandProperties: https://github.com/actions/runner/blob/main/src/Runner.Worker/ActionCommandManager.cs#L646
+ */
+function toCommandProperties(annotationProperties) {
+    if (!Object.keys(annotationProperties).length) {
+        return {};
+    }
+    return {
+        title: annotationProperties.title,
+        line: annotationProperties.startLine,
+        endLine: annotationProperties.endLine,
+        col: annotationProperties.startColumn,
+        endColumn: annotationProperties.endColumn
+    };
+}
+exports.toCommandProperties = toCommandProperties;
 //# sourceMappingURL=utils.js.map
 
 /***/ }),
@@ -1664,25 +1694,6 @@ function copyFile(srcFile, destFile, force) {
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1693,17 +1704,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(186));
-const octopus = __importStar(__nccwpck_require__(569));
-const inputs = __importStar(__nccwpck_require__(519));
+const input_parameters_1 = __nccwpck_require__(519);
+const run_runbook_1 = __nccwpck_require__(569);
+const core_1 = __nccwpck_require__(186);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const inputParameters = inputs.get();
-            yield octopus.runRunbook(inputParameters);
+            const inputParameters = (0, input_parameters_1.get)();
+            yield (0, run_runbook_1.runRunbook)(inputParameters);
         }
-        catch (error) {
-            core.setFailed(error.message);
+        catch (e) {
+            if (e instanceof Error) {
+                (0, core_1.setFailed)(e);
+            }
         }
     });
 }
@@ -1721,40 +1734,40 @@ exports.get = void 0;
 const core_1 = __nccwpck_require__(186);
 function get() {
     return {
-        apiKey: core_1.getInput('api_key'),
-        cancelOnTimeout: core_1.getBooleanInput('cancel_on_timeout'),
-        configFile: core_1.getInput('config_file'),
-        debug: core_1.getBooleanInput('debug'),
-        environments: core_1.getInput('environments'),
-        excludeMachines: core_1.getInput('exclude_machines'),
-        forcePackageDownload: core_1.getBooleanInput('force_package_download'),
-        guidedFailure: core_1.getInput('guided_failure'),
-        ignoreSslErrors: core_1.getBooleanInput('ignore_ssl_errors'),
-        logLevel: core_1.getInput('log_level'),
-        noRawLog: core_1.getBooleanInput('no_raw_log'),
-        noRunAfter: core_1.getInput('no_run_after'),
-        password: core_1.getInput('password'),
-        project: core_1.getInput('project'),
-        proxy: core_1.getInput('proxy'),
-        proxyPassword: core_1.getInput('proxy_password'),
-        proxyUsername: core_1.getInput('proxy_username'),
-        rawLogFile: core_1.getInput('raw_log_file'),
-        runAt: core_1.getInput('run_at'),
-        runbook: core_1.getInput('runbook'),
-        runCheckSleepCycle: core_1.getInput('run_check_sleep_cycle'),
-        runTimeout: core_1.getInput('run_timeout'),
-        server: core_1.getInput('server'),
-        showProgress: core_1.getBooleanInput('show_progress'),
-        skip: core_1.getInput('skip'),
-        snapshot: core_1.getInput('snapshot'),
-        space: core_1.getInput('space'),
-        specificMachines: core_1.getInput('specific_machines'),
-        tenant: core_1.getInput('tenant'),
-        tenantTag: core_1.getInput('tenant_tag'),
-        timeout: core_1.getInput('timeout'),
-        username: core_1.getInput('username'),
-        variable: core_1.getInput('variable'),
-        waitForRun: core_1.getBooleanInput('wait_for_run')
+        apiKey: (0, core_1.getInput)('api_key'),
+        cancelOnTimeout: (0, core_1.getBooleanInput)('cancel_on_timeout'),
+        configFile: (0, core_1.getInput)('config_file'),
+        debug: (0, core_1.getBooleanInput)('debug'),
+        environments: (0, core_1.getInput)('environments'),
+        excludeMachines: (0, core_1.getInput)('exclude_machines'),
+        forcePackageDownload: (0, core_1.getBooleanInput)('force_package_download'),
+        guidedFailure: (0, core_1.getInput)('guided_failure'),
+        ignoreSslErrors: (0, core_1.getBooleanInput)('ignore_ssl_errors'),
+        logLevel: (0, core_1.getInput)('log_level'),
+        noRawLog: (0, core_1.getBooleanInput)('no_raw_log'),
+        noRunAfter: (0, core_1.getInput)('no_run_after'),
+        password: (0, core_1.getInput)('password'),
+        project: (0, core_1.getInput)('project'),
+        proxy: (0, core_1.getInput)('proxy'),
+        proxyPassword: (0, core_1.getInput)('proxy_password'),
+        proxyUsername: (0, core_1.getInput)('proxy_username'),
+        rawLogFile: (0, core_1.getInput)('raw_log_file'),
+        runAt: (0, core_1.getInput)('run_at'),
+        runbook: (0, core_1.getInput)('runbook'),
+        runCheckSleepCycle: (0, core_1.getInput)('run_check_sleep_cycle'),
+        runTimeout: (0, core_1.getInput)('run_timeout'),
+        server: (0, core_1.getInput)('server'),
+        showProgress: (0, core_1.getBooleanInput)('show_progress'),
+        skip: (0, core_1.getInput)('skip'),
+        snapshot: (0, core_1.getInput)('snapshot'),
+        space: (0, core_1.getInput)('space'),
+        specificMachines: (0, core_1.getInput)('specific_machines'),
+        tenant: (0, core_1.getInput)('tenant'),
+        tenantTag: (0, core_1.getInput)('tenant_tag'),
+        timeout: (0, core_1.getInput)('timeout'),
+        username: (0, core_1.getInput)('username'),
+        variable: (0, core_1.getInput)('variable'),
+        waitForRun: (0, core_1.getBooleanInput)('wait_for_run')
     };
 }
 exports.get = get;
@@ -1766,25 +1779,6 @@ exports.get = get;
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1796,10 +1790,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.runRunbook = void 0;
-const core = __importStar(__nccwpck_require__(186));
-const exec = __importStar(__nccwpck_require__(514));
+const exec_1 = __nccwpck_require__(514);
+const core_1 = __nccwpck_require__(186);
 function getArgs(parameters) {
-    core.info('🔣 Parsing inputs...');
+    (0, core_1.info)('🔣 Parsing inputs...');
     const args = ['run-runbook'];
     if (parameters.apiKey.length > 0)
         args.push(`--apiKey=${parameters.apiKey}`);
@@ -1880,37 +1874,40 @@ function runRunbook(parameters) {
     return __awaiter(this, void 0, void 0, function* () {
         const args = getArgs(parameters);
         const options = {
-            ignoreReturnCode: true,
             listeners: {
-                errline: (line) => {
-                    core.error(line);
-                },
                 stdline: (line) => {
-                    if (line.length <= 0)
+                    if (line.length === 0)
                         return;
                     if (line.includes('Octopus Deploy Command Line Tool')) {
                         const version = line.split('version ')[1];
-                        core.info(`🐙 Using Octopus Deploy CLI ${version}...`);
+                        (0, core_1.info)(`🐙 Using Octopus Deploy CLI ${version}...`);
                         return;
                     }
                     if (line.includes('Handshaking with Octopus Server')) {
-                        core.info(`🤝 Handshaking with Octopus Deploy`);
+                        (0, core_1.info)(`🤝 Handshaking with Octopus Deploy`);
                         return;
                     }
                     if (line.includes('Authenticated as:')) {
-                        core.info(`✅ Authenticated`);
+                        (0, core_1.info)(`✅ Authenticated`);
                         return;
                     }
                     if (line === 'Done!') {
-                        core.info(`🎉 Runbook complete!`);
+                        (0, core_1.info)(`🎉 Runbook complete!`);
                         return;
                     }
-                    core.info(line);
+                    (0, core_1.info)(line);
                 }
             },
             silent: true
         };
-        yield exec.exec('octo', args, options);
+        try {
+            yield (0, exec_1.exec)('octo', args, options);
+        }
+        catch (e) {
+            if (e instanceof Error) {
+                (0, core_1.setFailed)(e);
+            }
+        }
     });
 }
 exports.runRunbook = runRunbook;
