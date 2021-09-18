@@ -1,7 +1,7 @@
 name: 'Run Runbook in Octopus Deploy'
 description: 'GitHub Action to run a runbook in Octopus Deploy'
 author: 'Octopus Deploy'
-branding: 
+branding:
   color: 'blue'
   icon: 'book'
 
@@ -9,31 +9,31 @@ inputs:
   api_key:
     description: 'The API key used to access Octopus Deploy. You must provide an API key or username and password. If the guest account is enabled, a key of API-GUEST may be used. It is strongly recommended that this value retrieved from a GitHub secret.'
   cancel_on_timeout:
-    default: 'false'
+    default: false
     description: 'Cancel the deployment if the deployment_timeout is exceeded (the default timeout is 10 minutes).'
   config_file:
     description: 'The path to a configuration file of default values with one "key=value" per line.'
   debug:
-    default: 'false'
+    default: false
     description: 'Enable debug logging.'
   environments:
     description: 'A comma-delimited list of environments in Octopus Deploy in which to run (i.e. "Dev,Test,Prod").'
   exclude_machines:
     description: 'A comma-separated list of machine names to exclude in the deployed environment. If empty, all machines in the environment will be considered.'
   force_package_download:
-    default: 'false'
+    default: false
     description: 'Force download of installed packages.'
   guided_failure:
-    default: 'false'
+    default: false
     description: 'Use Guided Failure mode.'
   ignore_ssl_errors:
-    default: 'false'
+    default: false
     description: 'Ignore certificate errors when communicating with Octopus Deploy. Warning: enabling this option creates a security vulnerability.'
   log_level:
     default: 'debug'
     description: 'The log level; valid options are "verbose", "debug", "information", "warning", "error", and "fatal".'
   no_raw_log:
-    default: 'false'
+    default: false
     description: 'Print the raw log of failed tasks.'
   no_run_after:
     description: 'The time at which scheduled runbook run should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.'
@@ -60,7 +60,7 @@ inputs:
   server:
     description: 'The base URL hosting Octopus Deploy (i.e. "https://octopus.example.com/"). It is recommended to retrieve this value from an environment variable.'
   show_progress:
-    default: 'false'
+    default: false
     description: 'Show progress of the runbook.'
   skip:
     description: 'Skip a step by name.'
@@ -73,14 +73,14 @@ inputs:
   tenant_tag:
     description: 'Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags.'
   timeout:
-    default: '600'
+    default: 600
     description: 'A timeout value in seconds for network operations.'
   username:
     description: 'The username used to authenticate with Octopus Deploy. You must provide an apiKey or username and password. It is strongly recommended to retrieve this value from a GitHub secret.'
   variable:
     description: 'Values for any prompted variables in the format, Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.'
   wait_for_run:
-    default: 'false'
+    default: false
     description: 'Indicates whether or not to wait synchronously for deployment to finish.'
 
 runs:
