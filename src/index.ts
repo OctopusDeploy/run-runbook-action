@@ -1,13 +1,15 @@
-import * as core from '@actions/core'
-import * as octopus from './run-runbook'
-import * as inputs from './input-parameters'
+import {get} from './input-parameters'
+import {runRunbook} from './run-runbook'
+import {setFailed} from '@actions/core'
 
 async function run(): Promise<void> {
   try {
-    const inputParameters = inputs.get()
-    await octopus.runRunbook(inputParameters)
-  } catch (error) {
-    core.setFailed(error.message)
+    const inputParameters = get()
+    await runRunbook(inputParameters)
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      setFailed(e)
+    }
   }
 }
 
