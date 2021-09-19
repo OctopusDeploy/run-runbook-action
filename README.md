@@ -47,7 +47,7 @@ steps:
       username: ${{ secrets.USERNAME }}
 ```
 
-## Action Inputs
+## 📥 Inputs
 
 The following input is required:
 
