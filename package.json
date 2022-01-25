@@ -11,7 +11,7 @@
   "description": "GitHub Action to Run a Runbook in Octopus Deploy",
   "devDependencies": {
     "@types/jest": "^27.4.0",
-    "@types/node": "^17.0.10",
+    "@types/node": "^17.0.11",
     "@types/tmp": "^0.2.3",
     "@typescript-eslint/parser": "^4.33.0",
     "@vercel/ncc": "^0.33.1",
