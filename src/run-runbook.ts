@@ -56,14 +56,23 @@ function getArgs(parameters: InputParameters): string[] {
   if (parameters.space.length > 0) args.push(`--space=${parameters.space}`)
   if (parameters.specificMachines.length > 0)
     args.push(`--specificMachines=${parameters.specificMachines}`)
-  if (parameters.tenant.length > 0) args.push(`--tenant=${parameters.tenant}`)
-  if (parameters.tenantTag.length > 0)
-    args.push(`--tenantTag=${parameters.tenantTag}`)
+
+  for (const tenant of parameters.tenants) {
+    tenant.split(',').map(t => args.push(`--tenant=${t}`))
+  }
+
+  for (const tenantTag of parameters.tenantTags) {
+    tenantTag.split(',').map(t => args.push(`--tenantTag=${t}`))
+  }
+
   if (parameters.timeout.length > 0 && parameters.timeout !== `600`)
     args.push(`--timeout=${parameters.timeout}`)
   if (parameters.username.length > 0) args.push(`--user=${parameters.username}`)
-  if (parameters.variable.length > 0)
-    args.push(`--variable=${parameters.variable}`)
+
+  for (const variable of parameters.variables) {
+    variable.split(',').map(v => args.push(`--variable=${v}`))
+  }
+
   if (parameters.waitForRun) args.push(`--waitForRun`)
 
   return args
