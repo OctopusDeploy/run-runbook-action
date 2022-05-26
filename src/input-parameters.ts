@@ -1,4 +1,4 @@
-import {getBooleanInput, getInput} from '@actions/core'
+import {getBooleanInput, getInput, getMultilineInput} from '@actions/core'
 
 export interface InputParameters {
   apiKey: string
@@ -30,10 +30,13 @@ export interface InputParameters {
   space: string
   specificMachines: string
   tenant: string
+  tenants: string[]
   tenantTag: string
+  tenantTags: string[]
   timeout: string
   username: string
   variable: string
+  variables: string[]
   waitForRun: boolean
 }
 
@@ -68,10 +71,13 @@ export function get(): InputParameters {
     space: getInput('space'),
     specificMachines: getInput('specific_machines'),
     tenant: getInput('tenant'),
+    tenants: getMultilineInput('tenants'),
     tenantTag: getInput('tenant_tag'),
+    tenantTags: getMultilineInput('tenant_tags'),
     timeout: getInput('timeout'),
     username: getInput('username'),
     variable: getInput('variable'),
+    variables: getMultilineInput('variables'),
     waitForRun: getBooleanInput('wait_for_run')
   }
 }
