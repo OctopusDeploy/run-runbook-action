@@ -56,7 +56,7 @@
     "github-actions"
   ],
   "license": "Apache-2.0",
-  "main": "out/index.js",
+  "main": "lib/main.js",
   "name": "run-runbook-action",
   "repository": {
     "type": "git",
@@ -69,7 +69,7 @@
     "format-check": "prettier --check **/*.ts",
     "prebuild": "eslint src/**/*.ts",
     "postbuild": "ncc build -o dist",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "version": "1.0.1"
 }
