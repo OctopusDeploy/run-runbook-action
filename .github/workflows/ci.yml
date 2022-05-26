@@ -20,6 +20,9 @@ jobs:
         with:
           node-version: 16
       - run: npm ci
+      - uses: OctopusDeploy/install-octopus-cli-action@v1
+        with:
+          version: '*'
       - run: npm run all
   release-please:
     name: Release
