@@ -11,6 +11,6 @@ describe('inputs', () => {
 describe('releases', () => {
   it('successfully runs a runbook', async () => {
     const inputParameters = inputs.get()
-    octopus.runRunbook(inputParameters)
+    await octopus.runRunbook(inputParameters)
   }, 100000)
 })
