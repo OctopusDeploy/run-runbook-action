@@ -14,13 +14,14 @@
     "@types/node": "^17.0.35",
     "@types/tmp": "^0.2.3",
     "@typescript-eslint/eslint-plugin": "^5.26.0",
-    "@typescript-eslint/parser": "^5.26.0",
+    "@typescript-eslint/parser": "^5.30.5",
     "@vercel/ncc": "^0.34.0",
     "eslint": "^8.16.0",
     "eslint-plugin-github": "^4.3.6",
     "eslint-plugin-jest": "^26.2.2",
     "jest": "^28.1.0",
     "jest-circus": "^28.1.0",
+    "jest-junit": "^14.0.0",
     "js-yaml": "^4.1.0",
     "prettier": "2.6.2",
     "tmp": "^0.2.1",
@@ -49,6 +50,15 @@
     },
     "verbose": true
   },
+  "jest-junit": {
+    "outputDirectory": "reports",
+    "outputName": "jest-junit.xml",
+    "ancestorSeperator": " > ",
+    "uniqueOutputName": "false",
+    "suiteNameTemplate": "{filepath}",
+    "classNameTemplate": "{classname}",
+    "titleTemplate": "{title}"
+  },
   "keywords": [
     "cli",
     "deployment",
@@ -56,7 +66,7 @@
     "github-actions"
   ],
   "license": "Apache-2.0",
-  "main": "lib/main.js",
+  "main": "src/main.ts",
   "name": "run-runbook-action",
   "repository": {
     "type": "git",
@@ -68,8 +78,8 @@
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "prebuild": "eslint src/**/*.ts",
-    "postbuild": "ncc build -o dist",
-    "test": "jest --passWithNoTests"
+    "postbuild": "ncc build out/main.js -o dist",
+    "test": "jest --ci --reporters=default --reporters=jest-junit --passWithNoTests"
   },
   "version": "1.1.0"
 }
