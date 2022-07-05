@@ -92,3 +92,7 @@ The following inputs are optional:
 | `username`               | The username used to authenticate with Octopus Deploy. You must provide `api_key` or `username` and `password`. It is strongly recommended to retrieve this value from a GitHub secret.                                                                           |            |
 | `variable`               | Values for any prompted variables (format: `Label:Value`). For JSON values, embedded quotation marks should be escaped with a backslash.                                                                                                                          |            |
 | `wait_for_run`           | Indicates whether or not to wait synchronously for deployment to finish.                                                                                                                                                                                          |  `false`   |
+
+## 🤝 Contributions
+
+Contributions are welcome! :heart: Please read our [Contributing Guide](.github/CONTRIBUTING.md) for information about how to get involved in this project.
