@@ -6,91 +6,29 @@ branding:
   icon: 'book'
 
 inputs:
-  api_key:
-    description: 'The API key used to access Octopus Deploy. You must provide an API key or username and password. If the guest account is enabled, a key of API-GUEST may be used. It is strongly recommended to retrieve this value from a GitHub secret.'
-  cancel_on_timeout:
-    default: false
-    description: 'Cancel the deployment if the deployment_timeout is exceeded (the default timeout is 10 minutes).'
-  config_file:
-    description: 'The path to a configuration file of default values with one "key=value" per line.'
-  debug:
-    default: false
-    description: 'Enable debug logging.'
-  environments:
-    description: 'A comma-delimited list of environments in Octopus Deploy in which to run (i.e. "Dev,Test,Prod").'
-  exclude_machines:
-    description: 'A comma-separated list of machine names to exclude in the deployed environment. If empty, all machines in the environment will be considered.'
-  force_package_download:
-    default: false
-    description: 'Force download of installed packages.'
-  guided_failure:
-    default: false
-    description: 'Use Guided Failure mode.'
-  ignore_ssl_errors:
-    default: false
-    description: 'Ignore certificate errors when communicating with Octopus Deploy. Warning: enabling this option creates a security vulnerability.'
-  log_level:
-    default: 'debug'
-    description: 'The log level; valid options are "verbose", "debug", "information", "warning", "error", and "fatal".'
-  no_raw_log:
-    default: false
-    description: 'Print the raw log of failed tasks.'
-  no_run_after:
-    description: 'The time at which scheduled runbook run should expire, specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.'
-  password:
-    description: 'The password to used to authenticate with Octopus Deploy. It is strongly recommended to retrieve this value from a GitHub secret.'
   project:
     description: 'The name or ID of the project associated with this runbook.'
     required: true
+  runbook:
+    description: 'The name or ID of the runbook. If the name is supplied, the project input value must also be specified.'
+    required: true
+  environments:
+    description: 'A comma-delimited list of environments in Octopus Deploy in which to run (i.e. "Dev,Test,Prod").'
+    required: true
+  variables:
+    description: 'A list of prompted variables in the format, Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash. Supports multiple prompted variables; one per line.'
+  api_key:
+    description: 'The API key used to access Octopus Deploy. You must provide an API key or username and password. If the guest account is enabled, a key of API-GUEST may be used. It is strongly recommended to retrieve this value from a GitHub secret.'
   proxy:
     description: 'The URL of a proxy to use (i.e. https://proxy.example.com).'
   proxy_password:
     description: 'The password used to connect to a proxy. It is strongly recommended to retrieve this value from a GitHub secret. If proxy_username and proxy_password are omitted and proxy URL is specified, the default credentials are used.'
   proxy_username:
     description: 'The username used to connect to a proxy. It is strongly recommended to retrieve this value from a GitHub secret.'
-  raw_log_file:
-    description: 'Redirect the raw log of failed tasks to a file.'
-  run_at:
-    description: 'The time at which runbook run should start (scheduled run), specified as any valid DateTimeOffset format, and assuming the time zone is the current local time zone.'
-  runbook:
-    description: 'The name or ID of the runbook. If the name is supplied, the project input value must also be specified.'
-  run_timeout:
-    default: '00:10:00'
-    description: 'The maximum length of time that the console session will wait for the runbook run to finish. Note: This will not stop the run. This input requires the wait_for_run input value to be true (format: HH:MM:SS). The default is 10 minutes.'
   server:
     description: 'The base URL hosting Octopus Deploy (i.e. "https://octopus.example.com/"). It is recommended to retrieve this value from an environment variable.'
-  show_progress:
-    default: false
-    description: 'Show progress of the runbook.'
-  skip:
-    description: 'Skip a step by name.'
   space:
     description: 'The name or ID of a space within which this command will be executed. If omitted, the default space will be used.'
-  specific_machines:
-    description: 'A comma-separated list of machine names to target in the deployed environment. If not specified all machines in the environment will be considered.'
-  tenant:
-    deprecationMessage: 'This input is deprecated. Please use the input parameter, "tenants" instead. It supports specifying multiple tenants; one per line.',
-    description: 'Create a deployment for the tenant with this name or ID; use a wildcard ("*") to deploy to all tenants who are ready for this release (according to lifecycle).'
-  tenants:
-    description: 'A list of tenants names and/or IDs to create a deployment. Specify a wildcard ("*") to deploy to all tenants who are ready for this release (according to lifecycle).'
-  tenant_tag:
-    deprecationMessage: 'This input is deprecated. Please use the input parameter, "tenant_tags" instead. It supports specifying multiple tenant tags; one per line.',
-    description: 'Create a deployment for tenants matching this tag; specify this argument multiple times to build a query/filter with multiple tags.'
-  tenant_tags:
-    description: 'A list of tenant tags to match against for a deployment. Supports multiple tenant tags; one per line.'
-  timeout:
-    default: 600
-    description: 'A timeout value in seconds for network operations.'
-  username:
-    description: 'The username used to authenticate with Octopus Deploy. You must provide an apiKey or username and password. It is strongly recommended to retrieve this value from a GitHub secret.'
-  variable:
-    deprecationMessage: 'This input is deprecated. Please use the input parameter, "variables" instead. It supports specifying multiple prompted variables; one per line.',
-    description: 'Values for any prompted variables in the format, Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash.'
-  variables:
-    description: 'A list of prompted variables in the format, Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash. Supports multiple prompted variables; one per line.'
-  wait_for_run:
-    default: false
-    description: 'Indicates whether or not to wait synchronously for deployment to finish.'
 
 runs:
   using: 'node12'
