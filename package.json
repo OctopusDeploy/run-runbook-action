@@ -36,9 +36,6 @@
       "js",
       "ts"
     ],
-    "setupFiles": [
-      "<rootDir>/src/test-setup.ts"
-    ],
     "testEnvironment": "node",
     "testMatch": [
       "**/*.test.ts"

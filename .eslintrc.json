@@ -71,7 +71,7 @@
       "files": "__tests__/**/*.ts",
       "env": {"jest": true, "node": true},
       "rules": {
-        "filenames/match-regex": false
+        "filenames/match-regex": 0
       }
     }
   ]
