@@ -1,4 +1,3 @@
-import {setFailed} from '@actions/core'
 import {exec, ExecOptions} from '@actions/exec'
 import {InputParameters} from './input-parameters'
 
@@ -140,7 +139,8 @@ export class OctopusCliWrapper {
     this.pickupConfigurationValue(parameters.space, 'OCTOPUS_SPACE', value =>
       launchArgs.push(`--space=${value}`)
     )
-
+    if (parameters.project.length > 0)
+      launchArgs.push(`--project=${parameters.project}`)
     if (parameters.runbook.length > 0)
       launchArgs.push(`--runbook=${parameters.runbook}`)
 
@@ -159,9 +159,10 @@ export class OctopusCliWrapper {
     return {args: launchArgs, env: launchEnv}
   }
 
-  // NOT UNIT TESTABLE. This shells out to 'octo' and expects to be running in GHA
-  // This invokes the CLI to do the work
-  async createRelease(): Promise<void> {
+  // This invokes the CLI to do the work.
+  // Returns the release number assigned by the octopus server
+  // This shells out to 'octo' and expects to be running in GHA, so you can't unit test it; integration tests only.
+  async runRunbook(octoExecutable = 'octo'): Promise<void | undefined> {
     this.logInfo('🔣 Parsing inputs...')
     const cliLaunchConfiguration = this.generateLaunchConfig()
 
@@ -174,11 +175,21 @@ export class OctopusCliWrapper {
     }
 
     try {
-      await exec('octo', cliLaunchConfiguration.args, options)
+      await exec(octoExecutable, cliLaunchConfiguration.args, options)
     } catch (e: unknown) {
       if (e instanceof Error) {
-        setFailed(e)
+        if (e.message.includes('Unable to locate executable file')) {
+          throw new Error(
+            'Octopus CLI executable missing. Please ensure you have added the `OctopusDeploy/install-octopus-cli-action@v1` step to your GitHub actions script before this.'
+          )
+        }
+        if (e.message.includes('failed with exit code')) {
+          throw new Error(
+            'Octopus CLI returned an error code. Please check your GitHub actions log for more detail'
+          )
+        }
       }
+      throw e
     }
   }
 }

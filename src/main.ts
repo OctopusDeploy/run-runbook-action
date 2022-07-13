@@ -10,7 +10,7 @@ async function run(): Promise<void> {
       msg => info(msg),
       msg => warning(msg)
     )
-    await wrapper.createRelease()
+    await wrapper.runRunbook()
   } catch (e: unknown) {
     if (e instanceof Error) {
       setFailed(e)

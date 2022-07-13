@@ -25,7 +25,6 @@ test('standard commandline processing', () => {
   w.stdline('Handshaking with Octopus Server')
   w.stdline('Authenticated as: magic user that should not be revealed')
   w.stdline('Done!')
-
   expect(infoMessages).toEqual([
     '🐙 Using Octopus Deploy CLI 123...',
     '🤝 Handshaking with Octopus Deploy',

@@ -18,7 +18,7 @@ inputs:
   variables:
     description: 'A list of prompted variables in the format, Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash. Supports multiple prompted variables; one per line.'
   api_key:
-    description: 'The API key used to access Octopus Deploy. You must provide an API key or username and password. If the guest account is enabled, a key of API-GUEST may be used. It is strongly recommended to retrieve this value from a GitHub secret.'
+    description: 'The API key used to access Octopus Deploy. An API key is required, but you may also use the OCTOPUS_API_KEY environment variable. If the guest account is enabled, a key of API-GUEST may be used. It is strongly recommended to retrieve this value from a GitHub secret.'
   proxy:
     description: 'The URL of a proxy to use (i.e. https://proxy.example.com).'
   proxy_password:
@@ -26,7 +26,7 @@ inputs:
   proxy_username:
     description: 'The username used to connect to a proxy. It is strongly recommended to retrieve this value from a GitHub secret.'
   server:
-    description: 'The base URL hosting Octopus Deploy (i.e. "https://octopus.example.com/"). It is recommended to retrieve this value from an environment variable.'
+    description: 'The base URL hosting Octopus Deploy (i.e. "https://octopus.example.com/"). The Server URL is required, but you may also use the OCTOPUS_HOST environment variable.'
   space:
     description: 'The name or ID of a space within which this command will be executed. If omitted, the default space will be used.'
 

@@ -41,6 +41,7 @@ test('all the parameters', () => {
     '--proxyUser=some-proxy-user',
     '--proxyPass=some-proxy-pass',
     '--space=Space-61',
+    '--project=projectZ',
     '--runbook=some-runbook',
     '--environment=hello',
     '--environment=world',
