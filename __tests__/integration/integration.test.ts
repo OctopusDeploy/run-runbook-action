@@ -27,20 +27,6 @@ const apiClientConfig: ClientConfiguration = {
   apiUri: process.env.OCTOPUS_TEST_URL || 'http://localhost:8050'
 }
 
-// experimental. Should probably be a custom jest matcher
-// function expectMatchAll(actual: string[], expected: (string | RegExp)[]): void {
-//   expect(actual.length).toEqual(expected.length)
-//   for (let i = 0; i < actual.length; i++) {
-//     const a = actual[i]
-//     const e = expected[i]
-//     if (e instanceof RegExp) {
-//       expect(a).toMatch(e)
-//     } else {
-//       expect(a).toEqual(e)
-//     }
-//   }
-// }
-
 describe('integration tests', () => {
   const runId = randomBytes(16).toString('hex')
   const globalCleanup = new CleanupHelper()
@@ -190,8 +176,9 @@ describe('integration tests', () => {
       Name: `Test-${runId}`
     })
     globalCleanup.add(async () => repository.environments.del(env))
-    globalCleanup.add(async () => new Promise(r => setTimeout(r, 2500)))
     standardInput.environments = env.Id
+    // Added sometime to wait for the runbook to finish running before cleanup
+    globalCleanup.add(async () => new Promise(r => setTimeout(r, 2500)))
   })
 
   afterAll(async () => {
@@ -214,18 +201,8 @@ describe('integration tests', () => {
     )
     await w.runRunbook(octoExecutable)
     console.log('Got: ', messages)
-    // expectMatchAll(messages, [
-    //   '🔣 Parsing inputs...',
-    //   /Octopus CLI, version .*/,
-    //   'Detected automation environment: "NoneOrUnknown"',
-    //   'Space name unspecified, process will run in the default space context',
-    //   '🤝 Handshaking with Octopus Deploy',
-    //   /Handshake successful. Octopus version: .*/,
-    //   ' (a service account)',
-    //   `Found runbook: TestRunbook (${standardInput.runbook})`
-    // ])
-    // The CLI outputs a diffrent amount of inputs with diffrent value
-    // everytime it runs in a GitHub Action. As we will be moving away from
+    // The CLI outputs a diffrent amount of inputs with diffrent values
+    // everytime it runs. As we will be moving away from
     // the CLI we will just check that the CLI outpus something.
     expect(messages.length).toBeGreaterThan(0)
   })
