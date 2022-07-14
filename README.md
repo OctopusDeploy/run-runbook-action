@@ -20,7 +20,7 @@ steps:
     with:
       version: latest
   - name: Run a runbook in Octopus Deploy 🐙
-    uses: OctopusDeploy/run-runbook-action@<version>
+    uses: OctopusDeploy/run-runbook-action@v2
     with:
       environments: 'Test Environment'
       project: 'Test Project'
