@@ -3277,7 +3277,7 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const wrapper = new octopus_cli_wrapper_1.OctopusCliWrapper((0, input_parameters_1.getInputParameters)(), process.env, msg => (0, core_1.info)(msg), msg => (0, core_1.warning)(msg));
-            yield wrapper.createRelease();
+            yield wrapper.runRunbook();
         }
         catch (e) {
             if (e instanceof Error) {
@@ -3307,7 +3307,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OctopusCliWrapper = void 0;
-const core_1 = __nccwpck_require__(186);
 const exec_1 = __nccwpck_require__(514);
 class OctopusCliWrapper {
     constructor(parameters, env, logInfo, logWarn) {
@@ -3386,6 +3385,8 @@ class OctopusCliWrapper {
         this.pickupConfigurationValue(parameters.proxyUsername, 'OCTOPUS_PROXY_USERNAME', value => launchArgs.push(`--proxyUser=${value}`));
         this.pickupConfigurationValue(parameters.proxyPassword, 'OCTOPUS_PROXY_PASSWORD', value => launchArgs.push(`--proxyPass=${value}`));
         this.pickupConfigurationValue(parameters.space, 'OCTOPUS_SPACE', value => launchArgs.push(`--space=${value}`));
+        if (parameters.project.length > 0)
+            launchArgs.push(`--project=${parameters.project}`);
         if (parameters.runbook.length > 0)
             launchArgs.push(`--runbook=${parameters.runbook}`);
         if (parameters.environments.length > 0) {
@@ -3400,9 +3401,10 @@ class OctopusCliWrapper {
         }
         return { args: launchArgs, env: launchEnv };
     }
-    // NOT UNIT TESTABLE. This shells out to 'octo' and expects to be running in GHA
-    // This invokes the CLI to do the work
-    createRelease() {
+    // This invokes the CLI to do the work.
+    // Returns the release number assigned by the octopus server
+    // This shells out to 'octo' and expects to be running in GHA, so you can't unit test it; integration tests only.
+    runRunbook(octoExecutable = 'octo') {
         return __awaiter(this, void 0, void 0, function* () {
             this.logInfo('🔣 Parsing inputs...');
             const cliLaunchConfiguration = this.generateLaunchConfig();
@@ -3414,12 +3416,18 @@ class OctopusCliWrapper {
                 silent: true
             };
             try {
-                yield (0, exec_1.exec)('octo', cliLaunchConfiguration.args, options);
+                yield (0, exec_1.exec)(octoExecutable, cliLaunchConfiguration.args, options);
             }
             catch (e) {
                 if (e instanceof Error) {
-                    (0, core_1.setFailed)(e);
+                    if (e.message.includes('Unable to locate executable file')) {
+                        throw new Error('Octopus CLI executable missing. Please ensure you have added the `OctopusDeploy/install-octopus-cli-action@v1` step to your GitHub actions script before this.');
+                    }
+                    if (e.message.includes('failed with exit code')) {
+                        throw new Error('Octopus CLI returned an error code. Please check your GitHub actions log for more detail');
+                    }
                 }
+                throw e;
             }
         });
     }
