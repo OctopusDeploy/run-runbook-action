@@ -15,7 +15,7 @@
     "@types/jest": "^28.1.4",
     "@types/node": "^18.0.3",
     "@types/tmp": "^0.2.3",
-    "@typescript-eslint/eslint-plugin": "^5.30.5",
+    "@typescript-eslint/eslint-plugin": "^5.30.6",
     "@typescript-eslint/parser": "^5.30.5",
     "@vercel/ncc": "^0.34.0",
     "eslint": "^8.19.0",
@@ -27,7 +27,7 @@
     "js-yaml": "^4.1.0",
     "prettier": "2.7.1",
     "tmp": "^0.2.1",
-    "ts-jest": "^28.0.5",
+    "ts-jest": "^28.0.6",
     "typescript": "^4.7.4"
   },
   "homepage": "https://github.com/OctopusDeploy/run-runbook-action#readme",
