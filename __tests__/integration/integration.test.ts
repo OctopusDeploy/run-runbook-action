@@ -10,8 +10,7 @@ import {
   StartTrigger,
   TenantedDeploymentMode
 } from '@octopusdeploy/message-contracts'
-import { RunConditionForAction } from '@octopusdeploy/message-contracts/dist/runConditionForAction'
-import { RunbookEnvironmentScope } from '@octopusdeploy/message-contracts/dist/runbookEnvironmentScope'
+import { RunConditionForAction, RunbookEnvironmentScope } from '@octopusdeploy/message-contracts'
 import { setOutput } from '@actions/core'
 import { runRunbook } from '../../src/octopus-cli-wrapper'
 import { CaptureOutput } from '../test-helpers'
