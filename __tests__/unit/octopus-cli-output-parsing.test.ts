@@ -1,23 +1,16 @@
-import {makeInputParameters} from '../../src/input-parameters'
-import {OctopusCliWrapper} from '../../src/octopus-cli-wrapper'
+import { OctopusCliOutputHandler } from '../../src/octopus-cli-wrapper'
+import { CaptureOutput } from '../test-helpers'
 
-let infoMessages: string[]
-let warnMessages: string[]
-let w: OctopusCliWrapper
+var output: CaptureOutput
+var w: OctopusCliOutputHandler
 
 beforeEach(() => {
-  infoMessages = []
-  warnMessages = []
-  w = new OctopusCliWrapper(
-    makeInputParameters(),
-    {},
-    msg => infoMessages.push(msg),
-    msg => warnMessages.push(msg)
-  )
+  output = new CaptureOutput()
+  w = new OctopusCliOutputHandler(output)
 })
 
 afterEach(() => {
-  expect(warnMessages).toEqual([]) // none of our tests here should generate warnings
+  expect(output.warns).toEqual([]) // none of our tests here should generate warnings
 })
 
 test('standard commandline processing', () => {
@@ -25,12 +18,32 @@ test('standard commandline processing', () => {
   w.stdline('Handshaking with Octopus Server')
   w.stdline('Authenticated as: magic user that should not be revealed')
   w.stdline('Done!')
-  expect(infoMessages).toEqual([
+  expect(output.infos).toEqual([
     '🐙 Using Octopus Deploy CLI 123...',
     '🤝 Handshaking with Octopus Deploy',
     '✅ Authenticated',
     '🎉 Runbook complete!'
   ])
+  expect(output.warns).toEqual([])
+})
+
+test('standard error processing also removes blank lines', () => {
+  w.errline('')
+  w.errline('FAILED')
+  w.errline('')
+
+  expect(output.infos).toEqual([])
+  expect(output.warns).toEqual(['FAILED'])
+  output.warns = [] // so the afterEach doesn't trip
+})
+
+test('other lines just get passed through', () => {
+  w.stdline('Creating release...!') // note trailing ! means the earlier thing doesn't match
+  w.stdline('foo')
+  w.stdline('bar')
+  w.stdline('baz')
+
+  expect(output.infos).toEqual(['Creating release...!', 'foo', 'bar', 'baz'])
 })
 
 test('filters blank lines', () => {
@@ -38,5 +51,5 @@ test('filters blank lines', () => {
   w.stdline('foo')
   w.stdline('')
 
-  expect(infoMessages).toEqual(['foo'])
+  expect(output.infos).toEqual(['foo'])
 })

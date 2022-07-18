@@ -3,7 +3,7 @@ type Callback = () => unknown
 export class CleanupHelper {
   #actions: Callback[] = []
 
-  add(callback: Callback): void {
+  add(callback: Callback) {
     this.#actions.push(callback)
   }
 
@@ -15,11 +15,15 @@ export class CleanupHelper {
     toExecute.reverse()
     this.#actions = []
 
-    for (const a of toExecute) {
+    for (let a of toExecute) {
       try {
         const result = a()
-        if (result && result instanceof Promise) {
-          await result
+        if (result && typeof result === 'object') {
+          const resultObj: any = result
+          if (typeof resultObj?.then === 'function') {
+            // it's a promise!
+            await resultObj
+          }
         }
       } catch (e: unknown) {
         console.error(`ERROR DURING CLEANUP!\n${e}`)

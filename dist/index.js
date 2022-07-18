@@ -3209,6 +3209,55 @@ exports.debug = debug; // for test
 
 /***/ }),
 
+/***/ 996:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+// Things in this file are shared across more than one of our github actions; set up
+// for easy copy-paste transfer across repos
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.pickupConfigurationValue = exports.pickupConfigurationValueExtended = void 0;
+// Picks up a config value from GHA Input or environment, supports mapping
+// of an obsolete env var to a newer one (e.g. OCTOPUS_CLI_SERVER vs OCTOPUS_HOST)
+function pickupConfigurationValueExtended(output, env, valueFromInputParameters, inputObsoleteEnvKey, inputNewEnvKey, valueHandler) {
+    // we always want to log the warning for a deprecated environment variable, even if the parameter comes in via inputParameter
+    let result;
+    const deprecatedValue = env[inputObsoleteEnvKey];
+    if (deprecatedValue && deprecatedValue.length > 0) {
+        output.warn(`Detected Deprecated ${inputObsoleteEnvKey} environment variable. Prefer ${inputNewEnvKey}`);
+        result = deprecatedValue;
+    }
+    const value = env[inputNewEnvKey];
+    // deliberately not 'else if' because if both OCTOPUS_CLI_API_KEY and OCTOPUS_API_KEY are set we want the latter to win
+    if (value && value.length > 0) {
+        result = value;
+    }
+    if (valueFromInputParameters.length > 0) {
+        result = valueFromInputParameters;
+    }
+    if (result) {
+        valueHandler(result);
+    }
+}
+exports.pickupConfigurationValueExtended = pickupConfigurationValueExtended;
+// Picks up a config value from GHA Input or environment
+function pickupConfigurationValue(env, valueFromInputParameters, inputNewEnvKey, valueHandler) {
+    if (valueFromInputParameters.length > 0) {
+        valueHandler(valueFromInputParameters);
+    }
+    else {
+        const value = env[inputNewEnvKey];
+        if (value && value.length > 0) {
+            valueHandler(value);
+        }
+    }
+}
+exports.pickupConfigurationValue = pickupConfigurationValue;
+
+
+/***/ }),
+
 /***/ 519:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -3273,11 +3322,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const input_parameters_1 = __nccwpck_require__(519);
 const core_1 = __nccwpck_require__(186);
 const octopus_cli_wrapper_1 = __nccwpck_require__(856);
+// GitHub actions entrypoint
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const wrapper = new octopus_cli_wrapper_1.OctopusCliWrapper((0, input_parameters_1.getInputParameters)(), process.env, msg => (0, core_1.info)(msg), msg => (0, core_1.warning)(msg));
-            yield wrapper.runRunbook();
+            const inputs = { parameters: (0, input_parameters_1.getInputParameters)(), env: process.env };
+            const outputs = { info: s => (0, core_1.info)(s), warn: s => (0, core_1.warning)(s) };
+            yield (0, octopus_cli_wrapper_1.runRunbook)(inputs, outputs, 'octo');
         }
         catch (e) {
             if (e instanceof Error) {
@@ -3306,133 +3357,111 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.OctopusCliWrapper = void 0;
+exports.runRunbook = exports.OctopusCliOutputHandler = exports.generateLaunchConfig = void 0;
 const exec_1 = __nccwpck_require__(514);
-class OctopusCliWrapper {
-    constructor(parameters, env, logInfo, logWarn) {
-        this.inputParameters = parameters;
-        this.env = env;
-        this.logInfo = logInfo;
-        this.logWarn = logWarn;
+const cli_util_1 = __nccwpck_require__(996);
+// Converts incoming environment and inputParameters into a set of commandline args + env vars to run the Octopus CLI
+function generateLaunchConfig(inputs, output) {
+    const launchArgs = ['run-runbook'];
+    const launchEnv = {};
+    const parameters = inputs.parameters;
+    (0, cli_util_1.pickupConfigurationValueExtended)(output, inputs.env, parameters.apiKey, 'OCTOPUS_CLI_API_KEY', 'OCTOPUS_API_KEY', value => (launchEnv['OCTOPUS_CLI_API_KEY'] = value));
+    (0, cli_util_1.pickupConfigurationValueExtended)(output, inputs.env, parameters.server, 'OCTOPUS_CLI_SERVER', 'OCTOPUS_HOST', value => (launchEnv['OCTOPUS_CLI_SERVER'] = value));
+    (0, cli_util_1.pickupConfigurationValue)(inputs.env, parameters.proxy, 'OCTOPUS_PROXY', value => launchArgs.push(`--proxy=${value}`));
+    (0, cli_util_1.pickupConfigurationValue)(inputs.env, parameters.proxyUsername, 'OCTOPUS_PROXY_USERNAME', value => launchArgs.push(`--proxyUser=${value}`));
+    (0, cli_util_1.pickupConfigurationValue)(inputs.env, parameters.proxyPassword, 'OCTOPUS_PROXY_PASSWORD', value => launchArgs.push(`--proxyPass=${value}`));
+    (0, cli_util_1.pickupConfigurationValue)(inputs.env, parameters.space, 'OCTOPUS_SPACE', value => launchArgs.push(`--space=${value}`));
+    if (parameters.project.length > 0)
+        launchArgs.push(`--project=${parameters.project}`);
+    if (parameters.runbook.length > 0)
+        launchArgs.push(`--runbook=${parameters.runbook}`);
+    if (parameters.environments.length > 0) {
+        for (const iterator of parameters.environments.split(',')) {
+            if (iterator.length > 0) {
+                launchArgs.push(`--environment=${iterator}`);
+            }
+        }
     }
-    // When the Octopus CLI writes to stdout, we capture the text via this function
+    for (const variable of parameters.variables) {
+        variable.split(',').map(v => launchArgs.push(`--variable=${v}`));
+    }
+    return { args: launchArgs, env: launchEnv };
+}
+exports.generateLaunchConfig = generateLaunchConfig;
+// consumes stdline and errline from the child process
+// and transforms/buffers output as needed
+class OctopusCliOutputHandler {
+    constructor(output) {
+        this.output = output;
+    }
+    // public: attach this to the process errline
+    errline(line) {
+        if (line.length === 0) {
+            return;
+        }
+        this.output.warn(line);
+    }
+    // public: attach this to the process stdline
     stdline(line) {
         if (line.length === 0)
             return;
         if (line.includes('Octopus Deploy Command Line Tool')) {
             const version = line.split('version ')[1];
-            this.logInfo(`🐙 Using Octopus Deploy CLI ${version}...`);
+            this.output.info(`🐙 Using Octopus Deploy CLI ${version}...`);
             return;
         }
         if (line.includes('Handshaking with Octopus Server')) {
-            this.logInfo(`🤝 Handshaking with Octopus Deploy`);
+            this.output.info(`🤝 Handshaking with Octopus Deploy`);
             return;
         }
         if (line.includes('Authenticated as:')) {
-            this.logInfo(`✅ Authenticated`);
+            this.output.info(`✅ Authenticated`);
             return;
         }
         if (line === 'Done!') {
-            this.logInfo(`🎉 Runbook complete!`);
+            this.output.info(`🎉 Runbook complete!`);
             return;
         }
-        this.logInfo(line);
-    }
-    // Picks up a config value from GHA Input or environment, supports mapping
-    // of an obsolete env var to a newer one (e.g. OCTOPUS_CLI_SERVER vs OCTOPUS_HOST)
-    pickupConfigurationValueExtended(inputParameter, inputObsoleteEnvKey, inputNewEnvKey, valueHandler) {
-        // we always want to log the warning for a deprecated environment variable, even if the parameter comes in via inputParameter
-        let result;
-        const deprecatedValue = this.env[inputObsoleteEnvKey];
-        if (deprecatedValue && deprecatedValue.length > 0) {
-            this.logWarn(`Detected Deprecated ${inputObsoleteEnvKey} environment variable. Prefer ${inputNewEnvKey}`);
-            result = deprecatedValue;
-        }
-        const value = this.env[inputNewEnvKey];
-        // deliberately not 'else if' because if both OCTOPUS_CLI_API_KEY and OCTOPUS_API_KEY are set we want the latter to win
-        if (value && value.length > 0) {
-            result = value;
-        }
-        if (inputParameter.length > 0) {
-            result = inputParameter;
-        }
-        if (result) {
-            valueHandler(result);
-        }
-    }
-    // Picks up a config value from GHA Input or environment
-    pickupConfigurationValue(inputParameter, inputNewEnvKey, valueHandler) {
-        if (inputParameter.length > 0) {
-            valueHandler(inputParameter);
-        }
-        else {
-            const value = this.env[inputNewEnvKey];
-            if (value && value.length > 0) {
-                valueHandler(value);
-            }
-        }
-    }
-    // Converts incoming environment and inputParameters into a set of commandline args + env vars to run the Octopus CLI
-    generateLaunchConfig() {
-        // Note: this is specialised to only work for run-runbook, but feels like it wants to be more generic and reusable?
-        // Given we have multiple github actions and each lives in its own repo, what's our strategy for sharing here?
-        const launchArgs = ['run-runbook'];
-        const launchEnv = {};
-        const parameters = this.inputParameters;
-        this.pickupConfigurationValueExtended(parameters.apiKey, 'OCTOPUS_CLI_API_KEY', 'OCTOPUS_API_KEY', value => (launchEnv['OCTOPUS_CLI_API_KEY'] = value));
-        this.pickupConfigurationValueExtended(parameters.server, 'OCTOPUS_CLI_SERVER', 'OCTOPUS_HOST', value => (launchEnv['OCTOPUS_CLI_SERVER'] = value));
-        this.pickupConfigurationValue(parameters.proxy, 'OCTOPUS_PROXY', value => launchArgs.push(`--proxy=${value}`));
-        this.pickupConfigurationValue(parameters.proxyUsername, 'OCTOPUS_PROXY_USERNAME', value => launchArgs.push(`--proxyUser=${value}`));
-        this.pickupConfigurationValue(parameters.proxyPassword, 'OCTOPUS_PROXY_PASSWORD', value => launchArgs.push(`--proxyPass=${value}`));
-        this.pickupConfigurationValue(parameters.space, 'OCTOPUS_SPACE', value => launchArgs.push(`--space=${value}`));
-        if (parameters.project.length > 0)
-            launchArgs.push(`--project=${parameters.project}`);
-        if (parameters.runbook.length > 0)
-            launchArgs.push(`--runbook=${parameters.runbook}`);
-        if (parameters.environments.length > 0) {
-            for (const iterator of parameters.environments.split(',')) {
-                if (iterator.length > 0) {
-                    launchArgs.push(`--environment=${iterator}`);
-                }
-            }
-        }
-        for (const variable of parameters.variables) {
-            variable.split(',').map(v => launchArgs.push(`--variable=${v}`));
-        }
-        return { args: launchArgs, env: launchEnv };
-    }
-    // This invokes the CLI to do the work.
-    // Returns the release number assigned by the octopus server
-    // This shells out to 'octo' and expects to be running in GHA, so you can't unit test it; integration tests only.
-    runRunbook(octoExecutable = 'octo') {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.logInfo('🔣 Parsing inputs...');
-            const cliLaunchConfiguration = this.generateLaunchConfig();
-            const options = {
-                listeners: {
-                    stdline: input => this.stdline(input)
-                },
-                env: cliLaunchConfiguration.env,
-                silent: true
-            };
-            try {
-                yield (0, exec_1.exec)(octoExecutable, cliLaunchConfiguration.args, options);
-            }
-            catch (e) {
-                if (e instanceof Error) {
-                    if (e.message.includes('Unable to locate executable file')) {
-                        throw new Error('Octopus CLI executable missing. Please ensure you have added the `OctopusDeploy/install-octopus-cli-action@v1` step to your GitHub actions script before this.');
-                    }
-                    if (e.message.includes('failed with exit code')) {
-                        throw new Error('Octopus CLI returned an error code. Please check your GitHub actions log for more detail');
-                    }
-                }
-                throw e;
-            }
-        });
+        this.output.info(line);
     }
 }
-exports.OctopusCliWrapper = OctopusCliWrapper;
+exports.OctopusCliOutputHandler = OctopusCliOutputHandler;
+// This invokes the CLI to do the work.
+// Returns the release number assigned by the octopus server
+// This shells out to 'octo' and expects to be running in GHA, so you can't unit test it; integration tests only.
+function runRunbook(inputs, output, octoExecutable) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const outputHandler = new OctopusCliOutputHandler(output);
+        const cliLaunchConfiguration = generateLaunchConfig(inputs, output);
+        // the launch config will only have the specific few env vars that the script wants to set.
+        // Need to merge with the rest of the environment variables, otherwise we will pass a
+        // stripped environment through to the CLI and it won't have meaningful things like HOME and PATH
+        const envCopy = Object.assign({}, process.env);
+        Object.assign(envCopy, cliLaunchConfiguration.env);
+        const options = {
+            listeners: {
+                stdline: input => outputHandler.stdline(input),
+                errline: input => outputHandler.errline(input)
+            },
+            env: envCopy,
+            silent: true
+        };
+        try {
+            yield (0, exec_1.exec)(octoExecutable, cliLaunchConfiguration.args, options);
+        }
+        catch (e) {
+            if (e instanceof Error) {
+                // catch some particular messages and rethrow more convenient ones
+                if (e.message.includes('Unable to locate executable file')) {
+                    throw new Error(`Octopus CLI executable missing. Ensure you have added the 'OctopusDeploy/install-octopus-cli-action@v1' step to your GitHub actions workflow.\nError: ${e.message}`);
+                }
+            }
+            // rethrow, so our Promise is rejected. The GHA shim in index.ts will catch this and call setFailed
+            throw e;
+        }
+    });
+}
+exports.runRunbook = runRunbook;
 
 
 /***/ }),

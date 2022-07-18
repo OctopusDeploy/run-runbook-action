@@ -1,4 +1,4 @@
-import {getInput, getMultilineInput} from '@actions/core'
+import { getInput, getMultilineInput } from '@actions/core'
 
 export interface InputParameters {
   project: string
@@ -28,9 +28,7 @@ export function getInputParameters(): InputParameters {
   }
 }
 
-export function makeInputParameters(
-  override?: Partial<InputParameters>
-): InputParameters {
+export function makeInputParameters(override?: Partial<InputParameters>): InputParameters {
   const template: InputParameters = {
     project: '',
     runbook: '',
