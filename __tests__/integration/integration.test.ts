@@ -319,11 +319,6 @@ describe('integration tests', () => {
     }
 
     expect(output.warns).toEqual([])
-    expectMatchAll(output.infos, [
-      /Octopus CLI, version .*/,
-      /Detected automation environment/,
-      /The API key you provided was not valid. Please double-check your API key and try again. For instructions on finding your API key, please visit:/, // partial match because the URL might be oc.to or g.octopushq.com depending on how old the CLI is
-      'Exit code: -5'
-    ])
+    expect(output.infos[output.infos.length - 1]).toEqual('Exit code: -5')
   })
 })
