@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v2.0.0...v2.0.1) (2022-07-18)
+
+
+### Bug Fixes
+
+* Environment variables from the GitHub action context were not passed through to the underlying Octopus CLI ([095ce5d](https://github.com/OctopusDeploy/run-runbook-action/commit/095ce5d0bbce0cdb2ad33eb047a44f7779427073))
+* StdError and the process exit code returned by the CLI are now shown in Github Action runs ([095ce5d](https://github.com/OctopusDeploy/run-runbook-action/commit/095ce5d0bbce0cdb2ad33eb047a44f7779427073))
+
 ## [2.0.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v1.1.0...v2.0.0) (2022-07-14)
 
 
