@@ -13,7 +13,7 @@
   "description": "GitHub Action to Run a Runbook in Octopus Deploy",
   "devDependencies": {
     "@types/jest": "^28.1.6",
-    "@types/node": "^18.6.1",
+    "@types/node": "^18.6.3",
     "@types/tmp": "^0.2.3",
     "@typescript-eslint/eslint-plugin": "^5.32.0",
     "@typescript-eslint/parser": "^5.32.0",
