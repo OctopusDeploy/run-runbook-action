@@ -6,6 +6,7 @@
 ### Features
 
 * bump dependencies ([4709116](https://github.com/OctopusDeploy/run-runbook-action/commit/470911616347dc299be6363b57f658c1323b04c9))
+* Bump to Node16 ([a722bbd](https://github.com/OctopusDeploy/run-runbook-action/commit/a722bbdf3736900191982e8f63954993ca518bd1))
 
 ## [2.0.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v2.0.0...v2.0.1) (2022-07-18)
 
