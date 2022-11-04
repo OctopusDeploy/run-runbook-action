@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v2.0.1...v2.1.0) (2022-11-04)
+
+
+### Features
+
+* bump dependencies ([4709116](https://github.com/OctopusDeploy/run-runbook-action/commit/470911616347dc299be6363b57f658c1323b04c9))
+
 ## [2.0.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v2.0.0...v2.0.1) (2022-07-18)
 
 
