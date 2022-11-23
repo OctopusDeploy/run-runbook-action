@@ -17,7 +17,7 @@ export interface RunbookRunResult {
 }
 
 export async function runRunbookFromInputs(client: Client, parameters: InputParameters): Promise<RunbookRunResult[]> {
-  client.info('🐙 Deploying a release in Octopus Deploy...')
+  client.info('🐙 Running runbooks in Octopus Deploy...')
 
   const command: CreateRunbookRunCommandV1 = {
     spaceName: parameters.space,
@@ -58,7 +58,10 @@ export async function runRunbookFromInputs(client: Client, parameters: InputPara
   const environments = await envRepository.list({ ids: envIds, take: envIds.length })
 
   let tenants: ResourceCollectionV2<Tenant>
-  if (parameters.tenants || parameters.tenantTags) {
+  if (
+    (parameters.tenants && parameters.tenants.length > 0) ||
+    (parameters.tenantTags && parameters.tenantTags.length > 0)
+  ) {
     const tenantIds = runs.Items.map(d => d.TenantId || '')
     const tenantRepository = new TenantRepository(client, parameters.space)
     tenants = await tenantRepository.list({ ids: tenantIds, take: tenantIds.length })
@@ -71,8 +74,7 @@ export async function runRunbookFromInputs(client: Client, parameters: InputPara
         e => e.Id === runs.Items.filter(d => d.TaskId === x.ServerTaskId)[0].EnvironmentId
       )[0].Name,
       tenantName: tenants
-        ? tenants.Items.filter(e => e.Id === runs.Items.filter(d => d.TaskId === x.ServerTaskId)[0].EnvironmentId)[0]
-            .Name
+        ? tenants.Items.filter(t => t.Id === runs.Items.filter(d => d.TaskId === x.ServerTaskId)[0].TenantId)[0].Name
         : null
     }
   })
