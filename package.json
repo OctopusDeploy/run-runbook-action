@@ -7,8 +7,7 @@
     "@actions/core": "^1.10.0",
     "@actions/http-client": "^2.0.1",
     "@actions/tool-cache": "^2.0.1",
-    "@octopusdeploy/api-client": "^1.4.0",
-    "@octopusdeploy/message-contracts": "^1.3.1"
+    "@octopusdeploy/api-client": "github:OctopusDeploy/api-client.ts#enh-dropenvvars"
   },
   "description": "GitHub Action to Run a Runbook in Octopus Deploy",
   "devDependencies": {
@@ -37,6 +36,9 @@
     "moduleFileExtensions": [
       "js",
       "ts"
+    ],
+    "setupFiles": [
+      "<rootDir>/src/test-setup.ts"
     ],
     "testEnvironment": "node",
     "testMatch": [

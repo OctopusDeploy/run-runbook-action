@@ -1,20 +1,62 @@
 import { getInputParameters } from './input-parameters'
-import { info, setFailed, warning } from '@actions/core'
-import { CliInputs, runRunbook } from './octopus-cli-wrapper'
-import { CliOutput } from './cli-util'
+import { debug, error, info, isDebug, setFailed, setOutput, warning } from '@actions/core'
+import { Client, ClientConfiguration, Logger } from '@octopusdeploy/api-client'
 
 // GitHub actions entrypoint
-async function run(): Promise<void> {
+import { runRunbookFromInputs } from './api-wrapper'
+import { writeFileSync } from 'fs'
+;(async (): Promise<void> => {
   try {
-    const inputs: CliInputs = { parameters: getInputParameters(), env: process.env }
-    const outputs: CliOutput = { info: s => info(s), warn: s => warning(s) }
+    const logger: Logger = {
+      debug: message => {
+        if (isDebug()) {
+          debug(message)
+        }
+      },
+      info: message => info(message),
+      warn: message => warning(message),
+      error: (message, err) => {
+        if (err !== undefined) {
+          error(err.message)
+        } else {
+          error(message)
+        }
+      }
+    }
 
-    await runRunbook(inputs, outputs, 'octo')
+    const parameters = getInputParameters()
+
+    const config: ClientConfiguration = {
+      userAgentApp: 'GitHubActions run-runbook-action',
+      instanceURL: parameters.server,
+      apiKey: parameters.apiKey,
+      logging: logger
+    }
+
+    const client = await Client.create(config)
+
+    const runResults = await runRunbookFromInputs(client, parameters)
+
+    if (runResults.length > 0) {
+      setOutput(
+        'server_tasks',
+        runResults.map(t => {
+          return {
+            serverTaskId: t.serverTaskId,
+            environmentName: t.environmentName,
+            tenantName: t.tenantName
+          }
+        })
+      )
+    }
+
+    const stepSummaryFile = process.env.GITHUB_STEP_SUMMARY
+    if (stepSummaryFile && runResults.length > 0) {
+      writeFileSync(stepSummaryFile, `🐙 Octopus Deploy queued run(s) in Project **${parameters.project}**.`)
+    }
   } catch (e: unknown) {
     if (e instanceof Error) {
       setFailed(e)
     }
   }
-}
-
-run()
+})()

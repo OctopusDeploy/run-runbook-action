@@ -3,14 +3,17 @@ on:
   push:
     paths-ignore:
       - '**/*.md'
-      
+
   schedule:
     # Daily 5am australian/brisbane time (7pm UTC)
     - cron: '0 19 * * *'
+  workflow_dispatch:
+
 env:
   SA_PASSWORD: ${{ secrets.DB_IMAGE_SA_PASSWORD }}
   ADMIN_API_KEY: ${{ secrets.OD_IMAGE_ADMIN_API_KEY }}
   SERVER_URL: 'http://localhost:8080'
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -41,39 +44,55 @@ jobs:
     permissions:
       statuses: write
       checks: write
+
+    outputs:
+      server_tasks: ${{ steps.self_test.outputs.server_tasks }}
+
     steps:
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-      - name: Install Octopus CLI 🐙
-        uses: OctopusDeploy/install-octopus-cli-action@v1
-        with:
-          version: '*'
+    - name: Install package dependencies
+      run: npm ci
 
-      - name: Install package dependencies
-        run: npm ci
+    - name: Compile and run tests
+      id: npm_tests
+      env:
+        OCTOPUS_TEST_URL: ${{ env.SERVER_URL }}
+        OCTOPUS_TEST_APIKEY: ${{ env.ADMIN_API_KEY }}
+      run: npm run all
 
-      - name: Compile and run tests
-        id: npm_tests
-        env:
-          OCTOPUS_TEST_URL: ${{ env.SERVER_URL }}
-          OCTOPUS_TEST_APIKEY: ${{ env.ADMIN_API_KEY }}
-        run: npm run all
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: JEST Tests
+        path: 'reports/jest-*.xml'
+        reporter: jest-junit
 
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
-        with:
-          name: JEST Tests
-          path: 'reports/jest-*.xml'
-          reporter: jest-junit
+    - name: GitHub Action self-test
+      id: self_test
+      uses: ./
+      env:
+        OCTOPUS_URL: ${{ env.SERVER_URL }}
+        OCTOPUS_API_KEY: ${{ env.ADMIN_API_KEY }}
+        OCTOPUS_SPACE: 'Default'
+      with:
+        project: ${{ steps.npm_tests.outputs.gha_selftest_project_name }} # see integration.test.ts
+        runbook: ${{ steps.npm_tests.outputs.gha_selftest_runbook }}
+        environments: |
+          Dev
+          Staging Demo
 
-      - name: GitHub Action self-test
-        id: self_test
-        uses: ./
-        env:
-          OCTOPUS_HOST: ${{ env.SERVER_URL }}
-          OCTOPUS_API_KEY: ${{ env.ADMIN_API_KEY }}
-        with:
-          project: ${{ steps.npm_tests.outputs.gha_selftest_project_name }} # see integration.test.ts
-          runbook: ${{ steps.npm_tests.outputs.gha_selftest_runbook }}
-          environments: ${{ steps.npm_tests.outputs.gha_selftest_environments }}
+    - name: Echo server tasks from self-test
+      run: echo "Runs queued [${{ steps.self_test.outputs.server_tasks }}]"
+
+  test-server-tasks:
+    runs-on: ubuntu-latest
+    needs: [test]
+    name: ${{ matrix.run.environmentName }}
+    strategy:
+      matrix:
+        run: ${{ fromJson(needs.test.outputs.server_tasks) }}
+    steps:
+    - name: Echo server task
+      run: echo "Run queued [${{ matrix.run.serverTaskId }}]"
