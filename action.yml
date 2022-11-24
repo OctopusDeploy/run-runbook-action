@@ -37,4 +37,4 @@ outputs:
 
 runs:
   using: 'node16'
-  main: 'src/index.js'
+  main: 'dist/index.js'
