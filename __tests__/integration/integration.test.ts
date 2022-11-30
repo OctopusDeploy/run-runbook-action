@@ -9,6 +9,7 @@ import {
   LifecycleRepository,
   Logger,
   PackageRequirement,
+  Project,
   ProjectGroupRepository,
   ProjectRepository,
   RunbookEnvironmentScope,
@@ -22,7 +23,6 @@ import {
   TenantedDeploymentMode
 } from '@octopusdeploy/api-client'
 import { randomBytes } from 'crypto'
-import { CleanupHelper } from './cleanup-helper'
 import { setOutput } from '@actions/core'
 import { CaptureOutput } from '../test-helpers'
 import { InputParameters } from '../../src/input-parameters'
@@ -38,7 +38,6 @@ const apiClientConfig: ClientConfiguration = {
 describe('integration tests', () => {
   jest.setTimeout(100000)
 
-  const globalCleanup = new CleanupHelper()
   const runId = randomBytes(16).toString('hex')
 
   const localProjectName = `project${runId}`
@@ -53,6 +52,8 @@ describe('integration tests', () => {
   }
 
   let apiClient: Client
+  let project: Project
+
   beforeAll(async () => {
     apiClient = await Client.create(apiClientConfig)
 
@@ -92,7 +93,7 @@ describe('integration tests', () => {
     }
 
     const projectRepository = new ProjectRepository(apiClient, standardInputParameters.space)
-    const project = await projectRepository.create({
+    project = await projectRepository.create({
       Name: localProjectName,
       LifecycleId: lifecycle.Id,
       ProjectGroupId: projectGroup.Id
@@ -155,8 +156,6 @@ describe('integration tests', () => {
       }
     })
 
-    globalCleanup.add(async () => runbookRepository.del(runbook))
-
     const runbookProcessRepository = new RunbookProcessRepository(apiClient, standardInputParameters.space, project)
     const runbookProcess = await runbookProcessRepository.get(runbook)
     runbookProcess.Steps = [
@@ -201,11 +200,6 @@ describe('integration tests', () => {
 
     const runbookSnapshotRepository = new RunbookSnapshotRepository(apiClient, standardInputParameters.space, project)
     await runbookSnapshotRepository.create(runbook, `Snapshot${runId}`, true)
-
-    globalCleanup.add(async () => {
-      // Added some time to wait for the runbook to finish running before cleanup
-      return new Promise(r => setTimeout(r, 2500))
-    })
   })
 
   afterAll(async () => {
@@ -213,7 +207,10 @@ describe('integration tests', () => {
       setOutput('gha_selftest_project_name', standardInputParameters.project)
       setOutput('gha_selftest_runbook', standardInputParameters.runbook)
     } else {
-      await globalCleanup.cleanup()
+      if (project) {
+        const projectRepository = new ProjectRepository(apiClient, standardInputParameters.space)
+        await projectRepository.del(project)
+      }
     }
   })
 
