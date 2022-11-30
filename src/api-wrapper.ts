@@ -3,11 +3,10 @@ import {
   Client,
   CreateRunbookRunCommandV1,
   EnvironmentRepository,
-  runRunbook,
   RunbookRunRepository,
   TenantRepository,
   Tenant,
-  ResourceCollectionV2
+  ResourceCollection
 } from '@octopusdeploy/api-client'
 
 export interface RunbookRunResult {
@@ -30,7 +29,8 @@ export async function runRunbookFromInputs(client: Client, parameters: InputPara
     Variables: parameters.variables
   }
 
-  const response = await runRunbook(client, command)
+  const runbookRunRepository = new RunbookRunRepository(client, parameters.space)
+  const response = await runbookRunRepository.create(command)
 
   client.info(
     `🎉 ${response.RunbookRunServerTasks.length} Runbook run${
@@ -50,14 +50,13 @@ export async function runRunbookFromInputs(client: Client, parameters: InputPara
 
   const runIds = response.RunbookRunServerTasks.map(x => x.RunbookRunId)
 
-  const runbookRunRepository = new RunbookRunRepository(client, parameters.space)
   const runs = await runbookRunRepository.list({ ids: runIds, take: runIds.length })
 
   const envIds = runs.Items.map(d => d.EnvironmentId)
   const envRepository = new EnvironmentRepository(client, parameters.space)
   const environments = await envRepository.list({ ids: envIds, take: envIds.length })
 
-  let tenants: ResourceCollectionV2<Tenant>
+  let tenants: ResourceCollection<Tenant>
   if (
     (parameters.tenants && parameters.tenants.length > 0) ||
     (parameters.tenantTags && parameters.tenantTags.length > 0)

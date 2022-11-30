@@ -2,24 +2,27 @@ import {
   Client,
   ClientConfiguration,
   DeploymentEnvironment,
+  DeploymentProcessRepository,
   EnvironmentRepository,
   ExecutionWaiter,
+  GuidedFailureMode,
+  LifecycleRepository,
   Logger,
-  Repository,
-  ServerTaskDetails
+  PackageRequirement,
+  ProjectGroupRepository,
+  ProjectRepository,
+  RunbookEnvironmentScope,
+  RunbookProcessRepository,
+  RunbookRepository,
+  RunbookSnapshotRepository,
+  RunCondition,
+  RunConditionForAction,
+  ServerTaskDetails,
+  StartTrigger,
+  TenantedDeploymentMode
 } from '@octopusdeploy/api-client'
 import { randomBytes } from 'crypto'
 import { CleanupHelper } from './cleanup-helper'
-import {
-  GuidedFailureMode,
-  PackageRequirement,
-  RunbookEnvironmentScope,
-  RunbookSnapshotResource,
-  RunCondition,
-  RunConditionForAction,
-  StartTrigger,
-  TenantedDeploymentMode
-} from '@octopusdeploy/message-contracts'
 import { setOutput } from '@actions/core'
 import { CaptureOutput } from '../test-helpers'
 import { InputParameters } from '../../src/input-parameters'
@@ -51,16 +54,15 @@ describe('integration tests', () => {
 
   let apiClient: Client
   beforeAll(async () => {
-    apiClient = await Client.create({ autoConnect: true, ...apiClientConfig })
+    apiClient = await Client.create(apiClientConfig)
 
-    const repository = new Repository(apiClient)
-
-    const projectGroup = (await repository.projectGroups.all())[0]
+    const projectGroup = (await new ProjectGroupRepository(apiClient, standardInputParameters.space).list({ take: 1 }))
+      .Items[0]
     if (!projectGroup) throw new Error("can't find first projectGroup")
 
     let devEnv: DeploymentEnvironment
     let stagingEnv: DeploymentEnvironment
-    const envRepository = new EnvironmentRepository(apiClient, apiClientConfig.space || 'Default')
+    const envRepository = new EnvironmentRepository(apiClient, standardInputParameters.space)
     let envs = await envRepository.list({ partialName: 'Dev' })
     if (envs.Items.filter(e => e.Name === 'Dev').length === 1) {
       devEnv = envs.Items.filter(e => e.Name === 'Dev')[0]
@@ -74,10 +76,11 @@ describe('integration tests', () => {
       stagingEnv = await envRepository.create({ Name: 'Staging Demo' })
     }
 
-    const lifeCycle = (await repository.lifecycles.all())[0]
-    if (!lifeCycle) throw new Error("Can't find first lifecycle")
-    if (lifeCycle.Phases.length === 0) {
-      lifeCycle.Phases.push({
+    const lifecycleRepository = new LifecycleRepository(apiClient, standardInputParameters.space)
+    const lifecycle = (await lifecycleRepository.list({ take: 1 })).Items[0]
+    if (!lifecycle) throw new Error("Can't find first lifecycle")
+    if (lifecycle.Phases.length === 0) {
+      lifecycle.Phases.push({
         Id: 'test',
         Name: 'Testing',
         OptionalDeploymentTargets: [devEnv.Id, stagingEnv.Id],
@@ -85,20 +88,21 @@ describe('integration tests', () => {
         MinimumEnvironmentsBeforePromotion: 1,
         IsOptionalPhase: false
       })
-      await repository.lifecycles.modify(lifeCycle)
+      await lifecycleRepository.modify(lifecycle)
     }
 
-    const project = await repository.projects.create({
+    const projectRepository = new ProjectRepository(apiClient, standardInputParameters.space)
+    const project = await projectRepository.create({
       Name: localProjectName,
-      LifecycleId: lifeCycle.Id,
+      LifecycleId: lifecycle.Id,
       ProjectGroupId: projectGroup.Id
     })
 
-    const deploymentProcess = await repository.deploymentProcesses.get(project.DeploymentProcessId, undefined)
+    const deploymentProcessRepository = new DeploymentProcessRepository(apiClient, standardInputParameters.space)
+    const deploymentProcess = await deploymentProcessRepository.get(project)
     deploymentProcess.Steps = [
       {
         Condition: RunCondition.Success,
-        Links: {},
         PackageRequirement: PackageRequirement.LetOctopusDecide,
         StartTrigger: StartTrigger.StartAfterPrevious,
         Id: '',
@@ -130,15 +134,15 @@ describe('integration tests', () => {
               'Octopus.Action.Script.ScriptSource': 'Inline',
               'Octopus.Action.Script.Syntax': 'Bash',
               'Octopus.Action.Script.ScriptBody': "ehco 'hello'"
-            },
-            Links: {}
+            }
           }
         ]
       }
     ]
-    await repository.deploymentProcesses.saveToProject(project, deploymentProcess)
+    await deploymentProcessRepository.update(project, deploymentProcess)
 
-    const runbook = await repository.runbooks.create({
+    const runbookRepository = new RunbookRepository(apiClient, standardInputParameters.space, project)
+    const runbook = await runbookRepository.create({
       ProjectId: project.Id,
       Description: 'Test Run book',
       DefaultGuidedFailureMode: GuidedFailureMode.EnvironmentDefault,
@@ -151,13 +155,13 @@ describe('integration tests', () => {
       }
     })
 
-    globalCleanup.add(async () => repository.runbooks.del(runbook))
+    globalCleanup.add(async () => runbookRepository.del(runbook))
 
-    const runbookProcess = await repository.runbookProcess.get(runbook.RunbookProcessId, undefined)
+    const runbookProcessRepository = new RunbookProcessRepository(apiClient, standardInputParameters.space, project)
+    const runbookProcess = await runbookProcessRepository.get(runbook)
     runbookProcess.Steps = [
       {
         Condition: RunCondition.Success,
-        Links: {},
         PackageRequirement: PackageRequirement.LetOctopusDecide,
         StartTrigger: StartTrigger.StartAfterPrevious,
         Id: '',
@@ -188,20 +192,15 @@ describe('integration tests', () => {
               'Octopus.Action.Script.Syntax': 'Bash',
               'Octopus.Action.Script.ScriptBody': "ehco 'hello'"
             },
-            Links: {},
             IsRequired: false
           }
         ]
       }
     ]
-    await repository.runbookProcess.save(runbookProcess)
-    let snapshot = {} as RunbookSnapshotResource
-    snapshot.ProjectId = project.Id
-    snapshot.Name = `Snapshot${runId}`
-    snapshot.RunbookId = runbook.Id
-    snapshot = await repository.runbookSnapshots.create(snapshot, {
-      publish: true
-    })
+    await runbookProcessRepository.update(runbookProcess)
+
+    const runbookSnapshotRepository = new RunbookSnapshotRepository(apiClient, standardInputParameters.space, project)
+    await runbookSnapshotRepository.create(runbook, `Snapshot${runId}`, true)
 
     globalCleanup.add(async () => {
       // Added some time to wait for the runbook to finish running before cleanup
