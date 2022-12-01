@@ -2930,11 +2930,21 @@ var Client = /** @class */ (function () {
         });
     };
     Client.prototype.get = function (path, args) {
-        if (path === undefined)
-            throw new Error("path parameter was not");
-        var url = this.resolveUrl(path, args);
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        return this.dispatchRequest("GET", url);
+        return __awaiter(this, void 0, void 0, function () {
+            var url;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (path === undefined)
+                            throw new Error("path parameter was not");
+                        url = this.resolveUrl(path, args);
+                        return [4 /*yield*/, this.dispatchRequest("GET", url)];
+                    case 1: 
+                    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                    return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     Client.prototype.getRaw = function (path, args) {
         var _this = this;
@@ -3009,15 +3019,17 @@ var Client = /** @class */ (function () {
                         _a.label = 4;
                     case 4:
                         url = this.resolveUrl(path, args);
-                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                        return [2 /*return*/, this.dispatchRequest("POST", url, command)];
+                        return [4 /*yield*/, this.dispatchRequest("POST", url, command)];
+                    case 5: 
+                    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                    return [2 /*return*/, _a.sent()];
                 }
             });
         });
     };
     Client.prototype.doUpdate = function (path, command, args) {
         return __awaiter(this, void 0, void 0, function () {
-            var spaceId, url;
+            var spaceId, spaceId, url;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -3029,9 +3041,18 @@ var Client = /** @class */ (function () {
                         command = __assign({ spaceId: spaceId }, command);
                         _a.label = 2;
                     case 2:
+                        if (!(args && (0, spaceScopedArgs_1.isSpaceScopedArgs)(args))) return [3 /*break*/, 4];
+                        return [4 /*yield*/, (0, spaceResolver_1.resolveSpaceId)(this, args.spaceName)];
+                    case 3:
+                        spaceId = _a.sent();
+                        args = __assign({ spaceId: spaceId }, args);
+                        _a.label = 4;
+                    case 4:
                         url = this.resolveUrl(path, args);
-                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                        return [2 /*return*/, this.dispatchRequest("PUT", url, command)];
+                        return [4 /*yield*/, this.dispatchRequest("PUT", url, command)];
+                    case 5: 
+                    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                    return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -3050,57 +3071,41 @@ var Client = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         url = this.resolveUrl(path, request);
-                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                        return [2 /*return*/, this.dispatchRequest("GET", url, null)];
+                        return [4 /*yield*/, this.dispatchRequest("GET", url, null)];
+                    case 3: 
+                    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                    return [2 /*return*/, _a.sent()];
                 }
             });
         });
     };
     Client.prototype.post = function (path, resource, args) {
-        var url = this.resolveUrl(path, args);
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        return this.dispatchRequest("POST", url, resource);
-    };
-    Client.prototype.create = function (path, resource, args) {
-        var _this = this;
-        var url = this.resolve(path, args);
-        return new Promise(function (resolve, reject) {
-            _this.dispatchRequest("POST", url, resource).then(function (result) {
-                var _a;
-                var selfLink = (_a = result.Links) === null || _a === void 0 ? void 0 : _a.Self;
-                if (selfLink) {
-                    var result2 = _this.get(selfLink);
-                    resolve(result2);
-                    return;
+        return __awaiter(this, void 0, void 0, function () {
+            var url;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        url = this.resolveUrl(path, args);
+                        return [4 /*yield*/, this.dispatchRequest("POST", url, resource)];
+                    case 1: 
+                    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                    return [2 /*return*/, _a.sent()];
                 }
-                resolve(result);
-            }, reject);
-        });
-    };
-    Client.prototype.update = function (path, resource, args) {
-        var _this = this;
-        var url = this.resolve(path, args);
-        return new Promise(function (resolve, reject) {
-            _this.dispatchRequest("PUT", url, resource).then(function (result) {
-                var _a;
-                var selfLink = (_a = result.Links) === null || _a === void 0 ? void 0 : _a.Self;
-                if (selfLink) {
-                    var result2 = _this.get(selfLink);
-                    resolve(result2);
-                    return;
-                }
-                resolve(result);
-            }, reject);
+            });
         });
     };
     Client.prototype.del = function (path, resource, args) {
-        var url = this.resolve(path, args);
-        return this.dispatchRequest("DELETE", url, resource);
-    };
-    Client.prototype.put = function (path, resource, args) {
-        var url = this.resolveUrl(path, args);
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        return this.dispatchRequest("PUT", url, resource);
+        return __awaiter(this, void 0, void 0, function () {
+            var url;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        url = this.resolve(path, args);
+                        return [4 /*yield*/, this.dispatchRequest("DELETE", url, resource)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     Client.prototype.getServerInformation = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -3321,35 +3326,66 @@ var BasicRepository = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                return [2 /*return*/, this.client.doCreate(this.baseApiTemplate, resource, args).then(function (r) { return _this.notifySubscribersToDataModifications(r); })];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.doCreate(this.baseApiTemplate, resource, args).then(function (r) { return _this.notifySubscribersToDataModifications(r); })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
             });
         });
     };
     BasicRepository.prototype.get = function (id) {
-        return this.client.get(this.baseApiTemplate, { id: id });
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.get(this.baseApiTemplate, { id: id })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     BasicRepository.prototype.list = function (args) {
-        return this.client.get(this.baseApiTemplate, args);
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.get(this.baseApiTemplate, args)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     BasicRepository.prototype.modify = function (resource, args) {
-        var _this = this;
-        return this.client
-            .doUpdate(this.baseApiTemplate, resource, __assign({ id: resource.Id }, args))
-            .then(function (r) { return _this.notifySubscribersToDataModifications(r); });
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client
+                            .doUpdate(this.baseApiTemplate, resource, __assign({ id: resource.Id }, args))
+                            .then(function (r) { return _this.notifySubscribersToDataModifications(r); })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     BasicRepository.prototype.save = function (resource) {
-        if (isNewResource(resource)) {
-            return this.create(resource);
-        }
-        else {
-            return this.modify(resource);
-        }
-        function isTruthy(value) {
-            return !!value;
-        }
-        function isNewResource(resource) {
-            return !("Id" in resource && isTruthy(resource.Id));
-        }
+        return __awaiter(this, void 0, void 0, function () {
+            function isTruthy(value) {
+                return !!value;
+            }
+            function isNewResource(resource) {
+                return !("Id" in resource && isTruthy(resource.Id));
+            }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!isNewResource(resource)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.create(resource)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2: return [4 /*yield*/, this.modify(resource)];
+                    case 3: return [2 /*return*/, _a.sent()];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
     };
     BasicRepository.prototype.subscribeToDataModifications = function (key, callback) {
         this.subscribersToDataModifications[key] = callback;
@@ -3575,6 +3611,42 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EnvironmentRepository = void 0;
 var __1 = __nccwpck_require__(586);
@@ -3588,18 +3660,46 @@ var EnvironmentRepository = /** @class */ (function (_super) {
     //     return this.client.get('${spaceScopedRoutePrefix}/environments/{id}/metadata', { spaceId: environment.SpaceId, id: environment.Id });
     // }
     EnvironmentRepository.prototype.sort = function (order) {
-        return this.client.doUpdate("".concat(__1.spaceScopedRoutePrefix, "/environments/sortorder"), order, { spaceName: this.spaceName });
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.doUpdate("".concat(__1.spaceScopedRoutePrefix, "/environments/sortorder"), order, { spaceName: this.spaceName })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     EnvironmentRepository.prototype.summary = function (args) {
-        return this.client.request("".concat(__1.spaceScopedRoutePrefix, "/environments/summary{?ids,partialName,machinePartialName,roles,isDisabled,healthStatuses,commStyles,tenantIds,tenantTags,hideEmptyEnvironments,shellNames,deploymentTargetTypes}"), __assign({ spaceName: this.spaceName }, args));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request("".concat(__1.spaceScopedRoutePrefix, "/environments/summary{?ids,partialName,machinePartialName,roles,isDisabled,healthStatuses,commStyles,tenantIds,tenantTags,hideEmptyEnvironments,shellNames,deploymentTargetTypes}"), __assign({ spaceName: this.spaceName }, args))];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     EnvironmentRepository.prototype.machines = function (environment, args) {
-        return this.client.request("".concat(__1.spaceScopedRoutePrefix, "/environments/{id}/machines{?skip,take,partialName,roles,isDisabled,healthStatuses,commStyles,tenantIds,tenantTags,shellNames,deploymentTargetTypes}"), __assign({ spaceName: this.spaceName, id: environment.Id }, args));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request("".concat(__1.spaceScopedRoutePrefix, "/environments/{id}/machines{?skip,take,partialName,roles,isDisabled,healthStatuses,commStyles,tenantIds,tenantTags,shellNames,deploymentTargetTypes}"), __assign({ spaceName: this.spaceName, id: environment.Id }, args))];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     EnvironmentRepository.prototype.variablesScopedOnlyToThisEnvironment = function (environment) {
-        return this.client.request("".concat(__1.spaceScopedRoutePrefix, "/environments/{id}/singlyScopedVariableDetails"), {
-            spaceName: this.spaceName,
-            id: environment.Id,
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request("".concat(__1.spaceScopedRoutePrefix, "/environments/{id}/singlyScopedVariableDetails"), {
+                            spaceName: this.spaceName,
+                            id: environment.Id,
+                        })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
         });
     };
     return EnvironmentRepository;
@@ -4848,8 +4948,8 @@ var DeploymentProcessRepository = /** @class */ (function () {
             var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.client.get("".concat(__1.spaceScopedRoutePrefix, "/projects/{projectId}/deploymentprocesses"), {
-                            spaceId: project.SpaceId,
+                    case 0: return [4 /*yield*/, this.client.request("".concat(__1.spaceScopedRoutePrefix, "/projects/{projectId}/deploymentprocesses"), {
+                            spaceName: this.spaceName,
                             projectId: project.Id,
                         })];
                     case 1:
@@ -4864,8 +4964,8 @@ var DeploymentProcessRepository = /** @class */ (function () {
             var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.client.get("".concat(__1.spaceScopedRoutePrefix, "/projects/{projectId}/{gitRef}/deploymentprocesses"), {
-                            spaceId: project.SpaceId,
+                    case 0: return [4 /*yield*/, this.client.request("".concat(__1.spaceScopedRoutePrefix, "/projects/{projectId}/{gitRef}/deploymentprocesses"), {
+                            spaceName: this.spaceName,
                             projectId: project.Id,
                             gitRef: gitRef,
                         })];
@@ -4897,10 +4997,9 @@ var DeploymentProcessRepository = /** @class */ (function () {
             var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.client.update("".concat(__1.spaceScopedRoutePrefix, "/projects/{projectId}/{gitRef}/deploymentprocesses"), deploymentProcess, {
-                            spaceId: deploymentProcess.SpaceId,
+                    case 0: return [4 /*yield*/, this.client.doUpdate("".concat(__1.spaceScopedRoutePrefix, "/projects/{projectId}/{gitRef}/deploymentprocesses"), deploymentProcess, {
+                            spaceName: this.spaceName,
                             projectId: project.Id,
-                            deploymentProcessId: deploymentProcess.Id,
                             gitRef: gitRef,
                         })];
                     case 1:
@@ -5413,10 +5512,24 @@ var DeploymentRepository = /** @class */ (function () {
         this.spaceName = spaceName;
     }
     DeploymentRepository.prototype.get = function (id) {
-        return this.client.request(this.baseApiTemplate, { id: id, spaceName: this.spaceName });
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request(this.baseApiTemplate, { id: id, spaceName: this.spaceName })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     DeploymentRepository.prototype.list = function (args) {
-        return this.client.request(this.baseApiTemplate, __assign({ spaceName: this.spaceName }, args));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request(this.baseApiTemplate, __assign({ spaceName: this.spaceName }, args))];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     DeploymentRepository.prototype.create = function (command) {
         return __awaiter(this, void 0, void 0, function () {
@@ -5936,11 +6049,11 @@ var RunbookSnapshotRepository = /** @class */ (function () {
                             RunbookId: runbook.Id,
                             Name: name,
                             Notes: notes,
-                            Publish: publish ? "true" : undefined,
                         };
-                        return [4 /*yield*/, this.client.doCreate("".concat(spaceScopedRoutePrefix_1.spaceScopedRoutePrefix, "/projects/{projectId}/runbookSnapshots"), snapshot, {
+                        return [4 /*yield*/, this.client.doCreate("".concat(spaceScopedRoutePrefix_1.spaceScopedRoutePrefix, "/projects/{projectId}/runbookSnapshots{?publish}"), snapshot, {
                                 spaceName: this.spaceName,
                                 projectId: this.projectId,
+                                publish: publish ? "true" : undefined,
                             })];
                     case 1:
                         response = _a.sent();
@@ -6066,10 +6179,24 @@ var RunbookRunRepository = /** @class */ (function () {
         this.spaceName = spaceName;
     }
     RunbookRunRepository.prototype.get = function (id) {
-        return this.client.request(this.baseApiTemplate, { id: id, spaceName: this.spaceName });
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request(this.baseApiTemplate, { id: id, spaceName: this.spaceName })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     RunbookRunRepository.prototype.list = function (args) {
-        return this.client.request(this.baseApiTemplate, __assign({ spaceName: this.spaceName }, args));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request(this.baseApiTemplate, __assign({ spaceName: this.spaceName }, args))];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     RunbookRunRepository.prototype.create = function (command) {
         return __awaiter(this, void 0, void 0, function () {
@@ -6078,7 +6205,7 @@ var RunbookRunRepository = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         this.client.debug("Running a runbook...");
-                        return [4 /*yield*/, this.client.doCreate("runbook-runs/create/v1", __assign({ spaceIdOrName: command.spaceName }, command))];
+                        return [4 /*yield*/, this.client.doCreate("".concat(spaceScopedRoutePrefix_1.spaceScopedRoutePrefix, "/runbook-runs/create/v1"), __assign({ spaceIdOrName: command.spaceName }, command))];
                     case 1:
                         response = _a.sent();
                         if (response.RunbookRunServerTasks.length == 0) {
@@ -6382,6 +6509,42 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SpaceScopedBasicRepository = void 0;
 var basicRepository_1 = __nccwpck_require__(2966);
@@ -6397,18 +6560,48 @@ var SpaceScopedBasicRepository = /** @class */ (function (_super) {
         return _this;
     }
     SpaceScopedBasicRepository.prototype.create = function (resource, args) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return _super.prototype.create.call(this, resource, __assign({ spaceName: this.spaceName }, args));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, _super.prototype.create.call(this, resource, __assign({ spaceName: this.spaceName }, args))];
+                    case 1: 
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     SpaceScopedBasicRepository.prototype.get = function (id) {
-        return this.client.request(this.baseApiTemplate, { id: id, spaceName: this.spaceName });
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request(this.baseApiTemplate, { id: id, spaceName: this.spaceName })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     SpaceScopedBasicRepository.prototype.list = function (args) {
-        return this.client.request(this.baseApiTemplate, __assign({ spaceName: this.spaceName }, args));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request(this.baseApiTemplate, __assign({ spaceName: this.spaceName }, args))];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     SpaceScopedBasicRepository.prototype.modify = function (resource, args) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return _super.prototype.modify.call(this, resource, __assign({ spaceName: this.spaceName }, args));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, _super.prototype.modify.call(this, resource, __assign({ spaceName: this.spaceName }, args))];
+                    case 1: 
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     return SpaceScopedBasicRepository;
 }(basicRepository_1.BasicRepository));
@@ -6556,6 +6749,42 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TagSetRepository = void 0;
 var spaceScopedRoutePrefix_1 = __nccwpck_require__(7218);
@@ -6566,7 +6795,14 @@ var TagSetRepository = /** @class */ (function (_super) {
         return _super.call(this, client, spaceName, "".concat(spaceScopedRoutePrefix_1.spaceScopedRoutePrefix, "/tagsets{/id}{?skip,take,ids,partialName}")) || this;
     }
     TagSetRepository.prototype.sort = function (ids) {
-        return this.client.doUpdate("".concat(spaceScopedRoutePrefix_1.spaceScopedRoutePrefix, "/tagsets/sortorder"), ids, { spaceName: this.spaceName });
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.doUpdate("".concat(spaceScopedRoutePrefix_1.spaceScopedRoutePrefix, "/tagsets/sortorder"), ids, { spaceName: this.spaceName })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     return TagSetRepository;
 }(spaceScopedBasicRepository_1.SpaceScopedBasicRepository));
@@ -6643,6 +6879,42 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TenantRepository = void 0;
 var __1 = __nccwpck_require__(586);
@@ -6653,24 +6925,54 @@ var TenantRepository = /** @class */ (function (_super) {
         return _super.call(this, client, spaceName, "".concat(__1.spaceScopedRoutePrefix, "/tenants{/id}{?skip,projectId,tags,take,ids,clone,partialName,clonedFromTenantId}")) || this;
     }
     TenantRepository.prototype.tagTest = function (tenantIds, tags) {
-        return this.client.request("".concat(__1.spaceScopedRoutePrefix, "/tenants/tag-test{?tenantIds,tags}"), { tenantIds: tenantIds, tags: tags });
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request("".concat(__1.spaceScopedRoutePrefix, "/tenants/tag-test{?tenantIds,tags}"), { tenantIds: tenantIds, tags: tags })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     TenantRepository.prototype.getVariables = function (tenant) {
-        return this.client.request("".concat(__1.spaceScopedRoutePrefix, "/tenants/{id}/variables"));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.request("".concat(__1.spaceScopedRoutePrefix, "/tenants/{id}/variables"))];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     TenantRepository.prototype.setVariables = function (tenant, variables) {
-        return this.client.doUpdate("".concat(__1.spaceScopedRoutePrefix, "/tenants/{id}/variables"), variables);
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.doUpdate("".concat(__1.spaceScopedRoutePrefix, "/tenants/{id}/variables"), variables)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     TenantRepository.prototype.missingVariables = function (filterOptions, includeDetails) {
         if (filterOptions === void 0) { filterOptions = {}; }
         if (includeDetails === void 0) { includeDetails = false; }
-        var payload = {
-            environmentId: filterOptions.environmentId,
-            includeDetails: !!includeDetails,
-            projectId: filterOptions.projectId,
-            tenantId: filterOptions.tenantId,
-        };
-        return this.client.request("".concat(__1.spaceScopedRoutePrefix, "/tenants/variables-missing{?tenantId,projectId,environmentId,includeDetails}"), payload);
+        return __awaiter(this, void 0, void 0, function () {
+            var payload;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        payload = {
+                            environmentId: filterOptions.environmentId,
+                            includeDetails: !!includeDetails,
+                            projectId: filterOptions.projectId,
+                            tenantId: filterOptions.tenantId,
+                        };
+                        return [4 /*yield*/, this.client.request("".concat(__1.spaceScopedRoutePrefix, "/tenants/variables-missing{?tenantId,projectId,environmentId,includeDetails}"), payload)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     return TenantRepository;
 }(spaceScopedBasicRepository_1.SpaceScopedBasicRepository));
