@@ -4,7 +4,6 @@ import {
   DeploymentEnvironment,
   DeploymentProcessRepository,
   EnvironmentRepository,
-  ExecutionWaiter,
   GuidedFailureMode,
   LifecycleRepository,
   Logger,
@@ -19,6 +18,7 @@ import {
   RunCondition,
   RunConditionForAction,
   ServerTaskDetails,
+  ServerTaskWaiter,
   StartTrigger,
   TenantedDeploymentMode
 } from '@octopusdeploy/api-client'
@@ -248,8 +248,8 @@ describe('integration tests', () => {
     expect(output.getAllMessages()).toContain(`[INFO] 🎉 2 Runbook runs queued successfully!`)
 
     // wait for the deployment or the teardown will fail
-    const waiter = new ExecutionWaiter(client, standardInputParameters.space)
-    await waiter.waitForExecutionsToComplete(
+    const waiter = new ServerTaskWaiter(client, standardInputParameters.space)
+    await waiter.waitForServerTasksToComplete(
       result.map(r => r.serverTaskId),
       1000,
       60000,
