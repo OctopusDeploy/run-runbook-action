@@ -31,8 +31,7 @@ import { runRunbookFromInputs } from '../../src/api-wrapper'
 const apiClientConfig: ClientConfiguration = {
   userAgentApp: 'Test',
   apiKey: process.env.OCTOPUS_TEST_API_KEY || 'API-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-  instanceURL: process.env.OCTOPUS_TEST_URL || 'http://localhost:8050',
-  space: process.env.OCTOPUS_TEST_SPACE || 'Default'
+  instanceURL: process.env.OCTOPUS_TEST_URL || 'http://localhost:8050'
 }
 
 describe('integration tests', () => {
@@ -41,11 +40,12 @@ describe('integration tests', () => {
   const runId = randomBytes(16).toString('hex')
 
   const localProjectName = `project${runId}`
+  const spaceName = process.env.OCTOPUS_TEST_SPACE || 'Default'
 
   const standardInputParameters: InputParameters = {
     server: apiClientConfig.instanceURL,
     apiKey: apiClientConfig.apiKey,
-    space: apiClientConfig.space || 'Default',
+    space: spaceName,
     project: localProjectName,
     runbook: 'TestRunbook',
     environments: ['Dev', 'Staging Demo']
