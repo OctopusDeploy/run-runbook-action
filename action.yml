@@ -7,28 +7,33 @@ branding:
 
 inputs:
   project:
-    description: 'The name or ID of the project associated with this runbook.'
+    description: 'The name of the project associated with this runbook.'
     required: true
   runbook:
-    description: 'The name or ID of the runbook. If the name is supplied, the project input value must also be specified.'
+    description: 'The name of the runbook.'
     required: true
   environments:
-    description: 'A comma-delimited list of environments in Octopus Deploy in which to run (i.e. "Dev,Test,Prod").'
+    description: 'A multi-line list of environments to deploy to.'
     required: true
+  tenants:
+    description: 'A multi-line list of tenant names to deploy to.'
+  tenant_tags:
+    description: 'A multi-line list of tenant tags (canonical names) to use to locate tenants to deploy to.'
+  use_guided_failure:
+    default: false
+    description: 'Whether to use guided failure mode if errors occur during the deployment.'
   variables:
-    description: 'A list of prompted variables in the format, Label:Value. For JSON values, embedded quotation marks should be escaped with a backslash. Supports multiple prompted variables; one per line.'
-  api_key:
-    description: 'The API key used to access Octopus Deploy. An API key is required, but you may also use the OCTOPUS_API_KEY environment variable. If the guest account is enabled, a key of API-GUEST may be used. It is strongly recommended to retrieve this value from a GitHub secret.'
-  proxy:
-    description: 'The URL of a proxy to use (i.e. https://proxy.example.com).'
-  proxy_password:
-    description: 'The password used to connect to a proxy. It is strongly recommended to retrieve this value from a GitHub secret. If proxy_username and proxy_password are omitted and proxy URL is specified, the default credentials are used.'
-  proxy_username:
-    description: 'The username used to connect to a proxy. It is strongly recommended to retrieve this value from a GitHub secret.'
+    description: 'A multi-line list of prompted variable values. Format: name:value'
   server:
-    description: 'The base URL hosting Octopus Deploy (i.e. "https://octopus.example.com/"). The Server URL is required, but you may also use the OCTOPUS_HOST environment variable.'
+    description: 'The instance URL hosting Octopus Deploy (i.e. "https://octopus.example.com/"). The instance URL is required, but you may also use the OCTOPUS_URL environment variable.'
+  api_key:
+    description: 'The API key used to access Octopus Deploy. An API key is required, but you may also use the OCTOPUS_API_KEY environment variable. It is strongly recommended that this value retrieved from a GitHub secret.'
   space:
-    description: 'The name or ID of a space within which this command will be executed. If omitted, the default space will be used.'
+    description: 'The name of a space within which this command will be executed. The space name is required, but you may also use the OCTOPUS_SPACE environment variable.'
+
+outputs:
+  server_tasks:
+    description: 'JSON string for an array of objects having a `serverTaskId` and an `environmentName`, and optionally a `tenantName`'
 
 runs:
   using: 'node16'

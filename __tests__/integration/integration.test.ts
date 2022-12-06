@@ -1,82 +1,109 @@
-import { makeInputParameters } from '../../src/input-parameters'
-import { Client, ClientConfiguration, Repository } from '@octopusdeploy/api-client'
-import { randomBytes } from 'crypto'
-import { CleanupHelper } from './cleanup-helper'
 import {
+  Client,
+  ClientConfiguration,
+  DeploymentEnvironment,
+  DeploymentProcessRepository,
+  EnvironmentRepository,
   GuidedFailureMode,
+  LifecycleRepository,
+  Logger,
   PackageRequirement,
-  RunbookSnapshotResource,
+  Project,
+  ProjectGroupRepository,
+  ProjectRepository,
+  RunbookEnvironmentScope,
+  RunbookProcessRepository,
+  RunbookRepository,
+  RunbookSnapshotRepository,
   RunCondition,
+  RunConditionForAction,
+  ServerTaskDetails,
+  ServerTaskWaiter,
   StartTrigger,
   TenantedDeploymentMode
-} from '@octopusdeploy/message-contracts'
-import { RunConditionForAction, RunbookEnvironmentScope } from '@octopusdeploy/message-contracts'
+} from '@octopusdeploy/api-client'
+import { randomBytes } from 'crypto'
 import { setOutput } from '@actions/core'
-import { runRunbook } from '../../src/octopus-cli-wrapper'
 import { CaptureOutput } from '../test-helpers'
-import { platform, tmpdir } from 'os'
-import { chmodSync, mkdirSync, rmSync, writeFileSync } from 'fs'
-import { join as pathJoin } from 'path'
-
-const octoExecutable = process.env.OCTOPUS_TEST_CLI_PATH || 'octo' // if 'octo' isn't in your system path, you can override it for tests here
-
-const isWindows = platform().includes('win')
+import { InputParameters } from '../../src/input-parameters'
+import { runRunbookFromInputs } from '../../src/api-wrapper'
 
 const apiClientConfig: ClientConfiguration = {
-  apiKey: process.env.OCTOPUS_TEST_APIKEY || 'API-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-  apiUri: process.env.OCTOPUS_TEST_URL || 'http://localhost:8050'
-}
-
-// experimental. Should probably be a custom jest matcher
-function expectMatchAll(actual: string[], expected: (string | RegExp)[]) {
-  for (let i = 0; i < Math.min(expected.length, actual.length); i++) {
-    const a = actual[i]
-    const e = expected[i]
-    if (e instanceof RegExp) {
-      expect(a).toMatch(e)
-    } else {
-      expect(a).toEqual(e)
-    }
-  }
-  expect(actual.length).toEqual(expected.length)
+  userAgentApp: 'Test',
+  apiKey: process.env.OCTOPUS_TEST_API_KEY || 'API-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+  instanceURL: process.env.OCTOPUS_TEST_URL || 'http://localhost:8050'
 }
 
 describe('integration tests', () => {
+  jest.setTimeout(100000)
+
   const runId = randomBytes(16).toString('hex')
 
-  const globalCleanup = new CleanupHelper()
-
   const localProjectName = `project${runId}`
-  const standardInputParameters = makeInputParameters({
-    project: localProjectName,
+  const spaceName = process.env.OCTOPUS_TEST_SPACE || 'Default'
+
+  const standardInputParameters: InputParameters = {
+    server: apiClientConfig.instanceURL,
     apiKey: apiClientConfig.apiKey,
-    server: apiClientConfig.apiUri
-  })
+    space: spaceName,
+    project: localProjectName,
+    runbook: 'TestRunbook',
+    environments: ['Dev', 'Staging Demo']
+  }
 
   let apiClient: Client
+  let project: Project
+
   beforeAll(async () => {
     apiClient = await Client.create(apiClientConfig)
 
-    const repository = new Repository(apiClient)
-
-    const lifeCycle = (await repository.lifecycles.all())[0]
-    if (!lifeCycle) throw new Error("Can't find first lifecycle")
-
-    const projectGroup = (await repository.projectGroups.all())[0]
+    const projectGroup = (await new ProjectGroupRepository(apiClient, standardInputParameters.space).list({ take: 1 }))
+      .Items[0]
     if (!projectGroup) throw new Error("can't find first projectGroup")
 
-    const project = await repository.projects.create({
+    let devEnv: DeploymentEnvironment
+    let stagingEnv: DeploymentEnvironment
+    const envRepository = new EnvironmentRepository(apiClient, standardInputParameters.space)
+    let envs = await envRepository.list({ partialName: 'Dev' })
+    if (envs.Items.filter(e => e.Name === 'Dev').length === 1) {
+      devEnv = envs.Items.filter(e => e.Name === 'Dev')[0]
+    } else {
+      devEnv = await envRepository.create({ Name: 'Dev' })
+    }
+    envs = await envRepository.list({ partialName: 'Staging Demo' })
+    if (envs.Items.filter(e => e.Name === 'Staging Demo').length === 1) {
+      stagingEnv = envs.Items.filter(e => e.Name === 'Staging Demo')[0]
+    } else {
+      stagingEnv = await envRepository.create({ Name: 'Staging Demo' })
+    }
+
+    const lifecycleRepository = new LifecycleRepository(apiClient, standardInputParameters.space)
+    const lifecycle = (await lifecycleRepository.list({ take: 1 })).Items[0]
+    if (!lifecycle) throw new Error("Can't find first lifecycle")
+    if (lifecycle.Phases.length === 0) {
+      lifecycle.Phases.push({
+        Id: 'test',
+        Name: 'Testing',
+        OptionalDeploymentTargets: [devEnv.Id, stagingEnv.Id],
+        AutomaticDeploymentTargets: [],
+        MinimumEnvironmentsBeforePromotion: 1,
+        IsOptionalPhase: false
+      })
+      await lifecycleRepository.modify(lifecycle)
+    }
+
+    const projectRepository = new ProjectRepository(apiClient, standardInputParameters.space)
+    project = await projectRepository.create({
       Name: localProjectName,
-      LifecycleId: lifeCycle.Id,
+      LifecycleId: lifecycle.Id,
       ProjectGroupId: projectGroup.Id
     })
-    standardInputParameters.project = project.Id
-    globalCleanup.add(async () => repository.projects.del(project))
-    const deploymentProcess = await repository.deploymentProcesses.get(project.DeploymentProcessId, undefined)
+
+    const deploymentProcessRepository = new DeploymentProcessRepository(apiClient, standardInputParameters.space)
+    const deploymentProcess = await deploymentProcessRepository.get(project)
     deploymentProcess.Steps = [
       {
         Condition: RunCondition.Success,
-        Links: {},
         PackageRequirement: PackageRequirement.LetOctopusDecide,
         StartTrigger: StartTrigger.StartAfterPrevious,
         Id: '',
@@ -108,15 +135,15 @@ describe('integration tests', () => {
               'Octopus.Action.Script.ScriptSource': 'Inline',
               'Octopus.Action.Script.Syntax': 'Bash',
               'Octopus.Action.Script.ScriptBody': "ehco 'hello'"
-            },
-            Links: {}
+            }
           }
         ]
       }
     ]
-    await repository.deploymentProcesses.saveToProject(project, deploymentProcess)
+    await deploymentProcessRepository.update(project, deploymentProcess)
 
-    const runbook = await repository.runbooks.create({
+    const runbookRepository = new RunbookRepository(apiClient, standardInputParameters.space, project)
+    const runbook = await runbookRepository.create({
       ProjectId: project.Id,
       Description: 'Test Run book',
       DefaultGuidedFailureMode: GuidedFailureMode.EnvironmentDefault,
@@ -128,12 +155,12 @@ describe('integration tests', () => {
         ShouldKeepForever: false
       }
     })
-    globalCleanup.add(async () => repository.runbooks.del(runbook))
-    const runbookProcess = await repository.runbookProcess.get(runbook.RunbookProcessId, undefined)
+
+    const runbookProcessRepository = new RunbookProcessRepository(apiClient, standardInputParameters.space, project)
+    const runbookProcess = await runbookProcessRepository.get(runbook)
     runbookProcess.Steps = [
       {
         Condition: RunCondition.Success,
-        Links: {},
         PackageRequirement: PackageRequirement.LetOctopusDecide,
         StartTrigger: StartTrigger.StartAfterPrevious,
         Id: '',
@@ -164,160 +191,73 @@ describe('integration tests', () => {
               'Octopus.Action.Script.Syntax': 'Bash',
               'Octopus.Action.Script.ScriptBody': "ehco 'hello'"
             },
-            Links: {},
             IsRequired: false
           }
         ]
       }
     ]
-    await repository.runbookProcess.save(runbookProcess)
-    let snapshot = {} as RunbookSnapshotResource
-    snapshot.ProjectId = project.Id
-    snapshot.Name = `Snapshot${runId}`
-    snapshot.RunbookId = runbook.Id
-    snapshot = await repository.runbookSnapshots.create(snapshot, {
-      publish: true
-    })
-    standardInputParameters.runbook = runbook.Id
-    const env = await repository.environments.create({
-      Name: `Test-${runId}`
-    })
-    globalCleanup.add(async () => repository.environments.del(env))
-    standardInputParameters.environments = env.Id
+    await runbookProcessRepository.update(runbookProcess)
 
-    globalCleanup.add(async () => {
-      // Added some time to wait for the runbook to finish running before cleanup
-      return new Promise(r => setTimeout(r, 2500))
-    })
+    const runbookSnapshotRepository = new RunbookSnapshotRepository(apiClient, standardInputParameters.space, project)
+    await runbookSnapshotRepository.create(runbook, `Snapshot${runId}`, true)
   })
 
   afterAll(async () => {
     if (process.env.GITHUB_ACTIONS) {
       setOutput('gha_selftest_project_name', standardInputParameters.project)
-      setOutput('gha_selftest_environments', standardInputParameters.environments)
       setOutput('gha_selftest_runbook', standardInputParameters.runbook)
     } else {
-      await globalCleanup.cleanup()
+      if (project) {
+        const projectRepository = new ProjectRepository(apiClient, standardInputParameters.space)
+        await projectRepository.del(project)
+      }
     }
   })
 
   test('can run runbook', async () => {
     const output = new CaptureOutput()
-    await runRunbook({ parameters: standardInputParameters, env: {} }, output, octoExecutable)
 
-    console.log('Got: ', output.getAllMessages())
-    // The CLI outputs a diffrent amount of inputs with diffrent values
-    // everytime it runs. As we will be moving away from
-    // the CLI we will just check that the CLI outpus something.
-    expect(output.infos.length).toBeGreaterThan(0)
-  })
+    const logger: Logger = {
+      debug: message => output.debug(message),
+      info: message => output.info(message),
+      warn: message => output.warn(message),
+      error: (message, err) => {
+        if (err !== undefined) {
+          output.error(err.message)
+        } else {
+          output.error(message)
+        }
+      }
+    }
 
-  test('fails with error if CLI executable not found', async () => {
-    const output = new CaptureOutput()
-    try {
-      await runRunbook({ parameters: standardInputParameters, env: {} }, output, 'not-octo')
-      throw new Error('should not get here: expecting runRunbook to throw an exception')
-    } catch (err: any) {
-      expect(err.message).toMatch(
-        // regex because the error prints the underlying nodejs error which has different text on different platforms, and we're not worried about
-        // asserting on that
-        new RegExp(
-          "Octopus CLI executable missing. Ensure you have added the 'OctopusDeploy/install-octopus-cli-action@v1' step to your GitHub actions workflow"
+    const config: ClientConfiguration = {
+      userAgentApp: 'Test',
+      instanceURL: apiClientConfig.instanceURL,
+      apiKey: apiClientConfig.apiKey,
+      logging: logger
+    }
+
+    const client = await Client.create(config)
+
+    const result = await runRunbookFromInputs(client, standardInputParameters)
+
+    // The first release in the project, so it should always have 0.0.1
+    expect(result.length).toBe(2)
+    expect(result[0].serverTaskId).toContain('ServerTasks-')
+
+    expect(output.getAllMessages()).toContain(`[INFO] 🎉 2 Runbook runs queued successfully!`)
+
+    // wait for the deployment or the teardown will fail
+    const waiter = new ServerTaskWaiter(client, standardInputParameters.space)
+    await waiter.waitForServerTasksToComplete(
+      result.map(r => r.serverTaskId),
+      1000,
+      60000,
+      (serverTaskDetails: ServerTaskDetails): void => {
+        console.log(
+          `Waiting for task ${serverTaskDetails.Task.Id}. Current status: ${serverTaskDetails.Task.State}, completed: ${serverTaskDetails.Progress.ProgressPercentage}%`
         )
-      )
-    }
-
-    expect(output.getAllMessages()).toEqual([])
-  })
-
-  test('fails picks up stderr from executable as well as return codes', async () => {
-    const output = new CaptureOutput()
-
-    let tmpDirPath = pathJoin(tmpdir(), runId)
-    mkdirSync(tmpDirPath)
-
-    let exePath: string
-    if (isWindows) {
-      const fileContents =
-        '@echo off\n' + 'echo An informational Message\n' + 'echo An error message 1>&2\n' + 'exit /b 37'
-      exePath = pathJoin(tmpDirPath, 'erroring_executable.cmd')
-      writeFileSync(exePath, fileContents)
-    } else {
-      const fileContents = 'echo An informational Message\n' + '>&2 echo "An error message "\n' + '(exit 37)'
-      exePath = pathJoin(tmpDirPath, 'erroring_executable.sh')
-      writeFileSync(exePath, fileContents)
-      chmodSync(exePath, '755')
-    }
-
-    const expectedExitCode = 37
-    try {
-      await runRunbook({ parameters: standardInputParameters, env: {} }, output, exePath)
-      throw new Error('should not get here: expecting runRunbook to throw an exception')
-    } catch (err: any) {
-      expect(err.message).toMatch(
-        new RegExp(`The process .*erroring_executable.* failed with exit code ${expectedExitCode}`)
-      )
-    } finally {
-      rmSync(tmpDirPath, { recursive: true })
-    }
-
-    expect(output.infos).toEqual(['An informational Message'])
-    expect(output.warns).toEqual(['An error message ']) // trailing space is deliberate because of windows bat file
-  })
-
-  test('fails with error if CLI returns an error code', async () => {
-    const output = new CaptureOutput()
-
-    const expectedExitCode = isWindows ? 4294967295 : 255 // Process should return -1 which maps to 4294967295 on windows or 255 on linux
-    const cliInputs = {
-      parameters: makeInputParameters({
-        // no project
-        apiKey: apiClientConfig.apiKey,
-        server: apiClientConfig.apiUri
-      }),
-      env: {}
-    }
-
-    try {
-      await runRunbook(cliInputs, output, octoExecutable)
-      throw new Error('should not get here: expecting runRunbook to throw an exception')
-    } catch (err: any) {
-      expect(err.message).toMatch(
-        // regex because when run locally the output logs 'octo' but in GHA it logs '/opt/hostedtoolcache/octo/9.1.3/x64/octo'
-        new RegExp(`The process .*octo.* failed with exit code ${expectedExitCode}`)
-      )
-    }
-
-    expect(output.warns).toEqual([])
-    console.log('Got: ', output.getAllMessages())
-    expect(output.infos.length).toBeGreaterThan(0)
-  })
-
-  test('fails with error if CLI returns an error code (bad auth)', async () => {
-    const output = new CaptureOutput()
-
-    const expectedExitCode = isWindows ? 4294967291 : 2 // Process should return -3 which maps to 4294967291 on windows or 2 on linux
-
-    const cliInputs = {
-      parameters: makeInputParameters({
-        project: localProjectName,
-        apiKey: apiClientConfig.apiKey + 'ZZZ',
-        server: apiClientConfig.apiUri
-      }),
-      env: {}
-    }
-
-    try {
-      await runRunbook(cliInputs, output, octoExecutable)
-      throw new Error('should not get here: expecting runRunbook to throw an exception')
-    } catch (err: any) {
-      expect(err.message).toMatch(
-        // regex because when run locally the output logs 'octo' but in GHA it logs '/opt/hostedtoolcache/octo/9.1.3/x64/octo'
-        new RegExp(`The process .*octo.* failed with exit code ${expectedExitCode}`)
-      )
-    }
-
-    expect(output.warns).toEqual([])
-    expect(output.infos[output.infos.length - 1]).toEqual('Exit code: -5')
+      }
+    )
   })
 })

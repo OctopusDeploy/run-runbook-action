@@ -1,22 +1,24 @@
-import { CliOutput } from '../src/cli-util'
-
-export class CaptureOutput implements CliOutput {
-  infos: string[]
-  warns: string[]
+export class CaptureOutput {
+  msgs: string[]
 
   constructor() {
-    this.infos = []
-    this.warns = []
+    this.msgs = []
   }
 
-  info(message: string) {
-    this.infos.push(message)
+  debug(message: string): void {
+    this.msgs.push(`[DEBUG] ${message}`)
   }
-  warn(message: string) {
-    this.warns.push(message)
+  info(message: string): void {
+    this.msgs.push(`[INFO] ${message}`)
+  }
+  warn(message: string): void {
+    this.msgs.push(`[WARN]  ${message}`)
+  }
+  error(message: string): void {
+    this.msgs.push(`[ERROR]  ${message}`)
   }
 
   getAllMessages(): string[] {
-    return this.infos.concat(this.warns)
+    return this.msgs
   }
 }
