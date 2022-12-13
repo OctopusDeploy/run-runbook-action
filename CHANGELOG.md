@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.0.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v2.1.0...v3.0.0) (2022-12-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* Updated action to use the native API client
+
+### Features
+
+* Updated action to use the native API client ([959a89a](https://github.com/OctopusDeploy/run-runbook-action/commit/959a89aae391c0bbc8b118154bd7af203d51dbee))
+
+
+### Bug Fixes
+
+* updated dependencies ([ab97aa6](https://github.com/OctopusDeploy/run-runbook-action/commit/ab97aa6bde4b51dfcb725f5915f41f363b2bb30d))
+
 ## [2.1.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v2.0.1...v2.1.0) (2022-11-04)
 
 
