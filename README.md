@@ -2,7 +2,7 @@
 
 <img alt= "" src="https://github.com/OctopusDeploy/run-runbook-action/raw/main/assets/github-actions-octopus.png" />
 
-This is a GitHub Action will run a runbook in Octopus Deploy. It requires the [Octopus CLI](https://octopus.com/docs/octopus-rest-api/octopus-cli); please ensure to include [install-octopus-cli-action](https://github.com/OctopusDeploy/install-octopus-cli-action) in your workflow (example below) before using this GitHub Action.
+This is a GitHub Action that will run a [runbook](https://octopus.com/docs/runbooks) in Octopus Deploy.
 
 ## Migration Guide(s)
 
@@ -23,9 +23,9 @@ steps:
     with:
       project: 'Test Project'
       runbook: 'Test Runbook'
-      environments: [ |
+      environments: |
         'Dev'
-        'Test']
+        'Test'
 ```
 
 ## ✍️ Environment Variables
@@ -42,7 +42,7 @@ steps:
 | :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `project`      | **Required.** The name of the project associated with this runbook.                                                                                                                                          |
 | `runbook`      | **Required.** The name of the runbook.                                                                                                                                                                       |
-| `environments` | **Required.** A comma-delimited list of environments in Octopus Deploy in which to run (i.e. "Dev,Test,Prod").                                                                                               |
+| `environments` | **Required.** A list of environments in Octopus Deploy in which to run (i.e. Dev, Test, Prod). Each environment should be added on a new line.                                                                                              |
 | `variables`    | A multi-line list of prompted variable values. Format: name:value.                                                                                                                                           |
 | `server`       | The instance URL hosting Octopus Deploy (i.e. "https://octopus.example.com/"). The instance URL is required, but you may also use the OCTOPUS_URL environment variable.                                      |
 | `api_key`      | The API key used to access Octopus Deploy. An API key is required, but you may also use the OCTOPUS_API_KEY environment variable. It is strongly recommended that this value retrieved from a GitHub secret. |
