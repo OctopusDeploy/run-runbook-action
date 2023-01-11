@@ -1,4 +1,5 @@
 import { getBooleanInput, getInput, getMultilineInput } from '@actions/core'
+import { PromptedVariableValues } from '@octopusdeploy/api-client'
 
 const EnvironmentVariables = {
   URL: 'OCTOPUS_URL',
@@ -13,20 +14,20 @@ export interface InputParameters {
   tenants?: string[]
   tenantTags?: string[]
   useGuidedFailure?: boolean
-  variables?: Map<string, string>
+  variables?: PromptedVariableValues
   server: string
   apiKey: string
   space: string
 }
 
 export function getInputParameters(): InputParameters {
-  let variablesMap: Map<string, string> | undefined = undefined
+  let variablesMap: PromptedVariableValues | undefined = undefined
   const variables = getMultilineInput('variables').map(p => p.trim()) || undefined
   if (variables) {
-    variablesMap = new Map()
+    variablesMap = {}
     for (const variable of variables) {
       const variableMap = variable.split(':').map(x => x.trim())
-      variablesMap?.set(variableMap[0], variableMap[1])
+      variablesMap[variableMap[0]] = variableMap[1]
     }
   }
 
