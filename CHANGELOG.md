@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.0.0...v3.0.1) (2023-01-11)
+
+
+### Bug Fixes
+
+* Fixed issue with serialization of prompted variable values ([#294](https://github.com/OctopusDeploy/run-runbook-action/issues/294)) ([8a35c76](https://github.com/OctopusDeploy/run-runbook-action/commit/8a35c76594ad28a6e0a50f508237e44c6441bc26))
+
 ## [3.0.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v2.1.0...v3.0.0) (2022-12-13)
 
 
