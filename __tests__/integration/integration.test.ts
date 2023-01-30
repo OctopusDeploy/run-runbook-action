@@ -16,7 +16,7 @@ import {
   RunbookRepository,
   RunbookSnapshotRepository,
   RunCondition,
-  RunConditionForAction,
+  RunConditionForAction, ServerTask,
   ServerTaskDetails,
   ServerTaskWaiter,
   StartTrigger,
@@ -48,7 +48,7 @@ describe('integration tests', () => {
     space: spaceName,
     project: localProjectName,
     runbook: 'TestRunbook',
-    environments: ['Dev', 'Staging Demo']
+    environments: ['Dev1', 'Staging Demo']
   }
 
   let apiClient: Client
@@ -253,9 +253,9 @@ describe('integration tests', () => {
       result.map(r => r.serverTaskId),
       1000,
       60000,
-      (serverTaskDetails: ServerTaskDetails): void => {
+      (serverTask: ServerTask): void => {
         console.log(
-          `Waiting for task ${serverTaskDetails.Task.Id}. Current status: ${serverTaskDetails.Task.State}, completed: ${serverTaskDetails.Progress.ProgressPercentage}%`
+          `Waiting for task ${serverTask.Id}. Current status: ${serverTask.State}`
         )
       }
     )
