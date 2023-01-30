@@ -27,7 +27,7 @@ import { writeFileSync } from 'fs'
     const parameters = getInputParameters()
 
     const config: ClientConfiguration = {
-      userAgentApp: 'GitHubActions run-runbook-action',
+      userAgentApp: 'GitHubActions (runbook;run;v3)',
       instanceURL: parameters.server,
       apiKey: parameters.apiKey,
       logging: logger
