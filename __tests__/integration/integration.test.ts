@@ -48,7 +48,7 @@ describe('integration tests', () => {
     space: spaceName,
     project: localProjectName,
     runbook: 'TestRunbook',
-    environments: ['Dev1', 'Staging Demo']
+    environments: ['Dev', 'Staging Demo']
   }
 
   let apiClient: Client
