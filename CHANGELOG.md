@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.2](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.0.1...v3.0.2) (2023-01-31)
+
+
+### Bug Fixes
+
+* Updated client library to get capability checks and better information on required Octopus version ([c95a407](https://github.com/OctopusDeploy/run-runbook-action/commit/c95a4072fe95fbd5c2ef93a03adfe4031c6cd062))
+
 ## [3.0.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.0.0...v3.0.1) (2023-01-11)
 
 
