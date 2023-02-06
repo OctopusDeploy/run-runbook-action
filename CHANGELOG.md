@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.3](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.0.2...v3.0.3) (2023-02-06)
+
+
+### Bug Fixes
+
+* Fixed a bug with the capability API checks ([#299](https://github.com/OctopusDeploy/run-runbook-action/issues/299)) ([3f4b34d](https://github.com/OctopusDeploy/run-runbook-action/commit/3f4b34df1a8e6c495a0b753729f5ec2baae6068a))
+
 ## [3.0.2](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.0.1...v3.0.2) (2023-01-31)
 
 
