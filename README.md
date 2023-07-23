@@ -44,7 +44,7 @@ steps:
 | `runbook`      | **Required.** The name of the runbook.                                                                                                                                                                       |
 | `environments` | **Required.** A list of environments in Octopus Deploy in which to run (i.e. Dev, Test, Prod). Each environment should be added on a new line.                                                                                              |
 | `variables`    | A multi-line list of prompted variable values. Format: name:value.                                                                                                                                           |
-| `server`       | The instance URL hosting Octopus Deploy (i.e. "https://octopus.example.com/"). The instance URL is required, but you may also use the OCTOPUS_URL environment variable.                                      |
+| `server`       | The instance URL hosting Octopus Deploy (i.e. "<https://octopus.example.com/>"). The instance URL is required, but you may also use the OCTOPUS_URL environment variable.                                      |
 | `api_key`      | The API key used to access Octopus Deploy. An API key is required, but you may also use the OCTOPUS_API_KEY environment variable. It is strongly recommended that this value retrieved from a GitHub secret. |
 | `space`        | The name of a space within which this command will be executed. The space name is required, but you may also use the OCTOPUS_SPACE environment variable.                                                     |
 
