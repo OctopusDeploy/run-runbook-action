@@ -30,6 +30,7 @@ import { writeFileSync } from 'fs'
       userAgentApp: 'GitHubActions (runbook;run;v3)',
       instanceURL: parameters.server,
       apiKey: parameters.apiKey,
+      accessToken: parameters.accessToken,
       logging: logger
     }
 
