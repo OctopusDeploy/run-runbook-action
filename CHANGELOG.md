@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.0.3...v3.1.0) (2023-08-30)
+
+
+### Features
+
+* Adds support for authenticating with access token ([#304](https://github.com/OctopusDeploy/run-runbook-action/issues/304)) ([bfe787c](https://github.com/OctopusDeploy/run-runbook-action/commit/bfe787c9edc46583003bee50964ecaf50ef9be93))
+
 ## [3.0.3](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.0.2...v3.0.3) (2023-02-06)
 
 
