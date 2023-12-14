@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.1.0...v3.2.0) (2023-12-14)
+
+
+### Features
+
+* Upgrade to node 20 ([#313](https://github.com/OctopusDeploy/run-runbook-action/issues/313)) ([e865679](https://github.com/OctopusDeploy/run-runbook-action/commit/e8656790c7cd18f71542d44fe39f4603cebf49db))
+
 ## [3.1.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.0.3...v3.1.0) (2023-08-30)
 
 
