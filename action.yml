@@ -36,5 +36,5 @@ outputs:
     description: 'JSON string for an array of objects having a `serverTaskId` and an `environmentName`, and optionally a `tenantName`'
 
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
