@@ -4,6 +4,9 @@
 
 This is a GitHub Action that will run a [runbook](https://octopus.com/docs/runbooks) in Octopus Deploy.
 
+> [!IMPORTANT]
+> As of **v3** of this action, Octopus Server version `2022.3.5512` or newer is required.
+
 ## Migration Guide(s)
 
 Please refer to the [migration guide](migration-guide.md) if moving between major versions of this action.
