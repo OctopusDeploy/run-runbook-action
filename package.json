@@ -9,7 +9,7 @@
   },
   "description": "GitHub Action to Run a Runbook in Octopus Deploy",
   "devDependencies": {
-    "@types/jest": "29.5.12",
+    "@types/jest": "29.5.13",
     "@types/lodash": "4.17.7",
     "@types/node": "20.16.5",
     "@types/tmp": "0.2.6",
