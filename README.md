@@ -27,8 +27,8 @@ steps:
       project: 'Test Project'
       runbook: 'Test Runbook'
       environments: |
-        'Dev'
-        'Test'
+        Dev
+        Test
 ```
 
 ## ✍️ Environment Variables
