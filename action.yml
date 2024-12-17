@@ -30,6 +30,8 @@ inputs:
     description: 'The API key used to access Octopus Deploy. An API key is required, but you may also use the OCTOPUS_API_KEY environment variable. It is strongly recommended that this value retrieved from a GitHub secret.'
   space:
     description: 'The name of a space within which this command will be executed. The space name is required, but you may also use the OCTOPUS_SPACE environment variable.'
+  git_ref:
+    description: 'The Git Reference on which to run the Runbook. If not populate the action assumes you are running a DB Runbook. In most cases when running a Git Runbook this will be your default branch refs/heads/main'
 
 outputs:
   server_tasks:

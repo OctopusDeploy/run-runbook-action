@@ -14,10 +14,11 @@ import {
   RunbookEnvironmentScope,
   RunbookProcessRepository,
   RunbookRepository,
+  RunbookRetentionUnit,
   RunbookSnapshotRepository,
   RunCondition,
-  RunConditionForAction, ServerTask,
-  ServerTaskDetails,
+  RunConditionForAction,
+  ServerTask,
   ServerTaskWaiter,
   StartTrigger,
   TenantedDeploymentMode
@@ -152,7 +153,8 @@ describe('integration tests', () => {
       MultiTenancyMode: TenantedDeploymentMode.TenantedOrUntenanted,
       RunRetentionPolicy: {
         QuantityToKeep: 1,
-        ShouldKeepForever: false
+        ShouldKeepForever: false,
+        Unit: RunbookRetentionUnit.Items
       }
     })
 
@@ -254,9 +256,7 @@ describe('integration tests', () => {
       1000,
       60000,
       (serverTask: ServerTask): void => {
-        console.log(
-          `Waiting for task ${serverTask.Id}. Current status: ${serverTask.State}`
-        )
+        console.log(`Waiting for task ${serverTask.Id}. Current status: ${serverTask.State}`)
       }
     )
   })
