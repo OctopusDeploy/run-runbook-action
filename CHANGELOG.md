@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.2.1...v3.3.0) (2024-12-18)
+
+
+### Features
+
+* Added Git Runbook support ([#432](https://github.com/OctopusDeploy/run-runbook-action/issues/432)) ([5d47e3d](https://github.com/OctopusDeploy/run-runbook-action/commit/5d47e3d695793db309166fa556fa90b8f5d3c1da))
+
 ## [3.2.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.2.0...v3.2.1) (2024-02-04)
 
 
