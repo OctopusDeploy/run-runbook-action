@@ -14,11 +14,10 @@ import {
   RunbookEnvironmentScope,
   RunbookProcessRepository,
   RunbookRepository,
-  RunbookRetentionUnit,
   RunbookSnapshotRepository,
   RunCondition,
-  RunConditionForAction,
-  ServerTask,
+  RunConditionForAction, ServerTask,
+  ServerTaskDetails,
   ServerTaskWaiter,
   StartTrigger,
   TenantedDeploymentMode
@@ -255,7 +254,9 @@ describe('integration tests', () => {
       1000,
       60000,
       (serverTask: ServerTask): void => {
-        console.log(`Waiting for task ${serverTask.Id}. Current status: ${serverTask.State}`)
+        console.log(
+          `Waiting for task ${serverTask.Id}. Current status: ${serverTask.State}`
+        )
       }
     )
   })
