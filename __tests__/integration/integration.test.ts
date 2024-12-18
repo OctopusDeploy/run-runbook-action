@@ -153,8 +153,7 @@ describe('integration tests', () => {
       MultiTenancyMode: TenantedDeploymentMode.TenantedOrUntenanted,
       RunRetentionPolicy: {
         QuantityToKeep: 1,
-        ShouldKeepForever: false,
-        Unit: RunbookRetentionUnit.Items
+        ShouldKeepForever: false
       }
     })
 
