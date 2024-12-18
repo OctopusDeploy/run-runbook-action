@@ -41970,7 +41970,7 @@ exports.runRunbookFromInputs = void 0;
 const api_client_1 = __nccwpck_require__(586);
 function runRunbookFromInputs(client, parameters) {
     return __awaiter(this, void 0, void 0, function* () {
-        client.info(`🐙 Running runbooks in Octopus Deploy...`);
+        client.info('🐙 Running runbooks in Octopus Deploy...');
         if (parameters.gitRef) {
             return yield runGitRunbookFromInputs(client, parameters);
         }
