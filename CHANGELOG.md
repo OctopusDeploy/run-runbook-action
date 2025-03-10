@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.3.0...v3.3.1) (2025-03-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @actions/core to v1.11.1 ([#415](https://github.com/OctopusDeploy/run-runbook-action/issues/415)) ([fab4b76](https://github.com/OctopusDeploy/run-runbook-action/commit/fab4b769c78e06838f6255e3ff0b81e05e6a5376))
+
 ## [3.3.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.2.1...v3.3.0) (2024-12-18)
 
 
