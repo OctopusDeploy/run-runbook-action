@@ -10,7 +10,7 @@
   "description": "GitHub Action to Run a Runbook in Octopus Deploy",
   "devDependencies": {
     "@types/jest": "29.5.14",
-    "@types/lodash": "4.17.17",
+    "@types/lodash": "4.17.18",
     "@types/node": "20.19.1",
     "@types/tmp": "0.2.6",
     "@typescript-eslint/eslint-plugin": "5.62.0",
