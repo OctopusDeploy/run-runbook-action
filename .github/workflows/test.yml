@@ -49,12 +49,12 @@ jobs:
       server_tasks: ${{ steps.self_test.outputs.server_tasks }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
 
-    - name: Setup node 20
+    - name: Setup node 24
       uses: actions/setup-node@v3
       with:
-        node-version: 20.19.5
+        node-version: 24.11.1
 
     - name: Install package dependencies
       run: npm ci
@@ -67,7 +67,7 @@ jobs:
       run: npm run all
 
     - name: Test Report
-      uses: dorny/test-reporter@v1
+      uses: dorny/test-reporter@v2
       if: success() || failure()
       with:
         name: JEST Tests
