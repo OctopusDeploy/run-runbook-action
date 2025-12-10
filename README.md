@@ -18,7 +18,7 @@ Incorporate the following actions in your workflow to push a package to Octopus 
 ```yml
 steps:
   - name: Run a runbook in Octopus Deploy 🐙
-    uses: OctopusDeploy/run-runbook-action@v3
+    uses: OctopusDeploy/run-runbook-action@v4
     env:
       OCTOPUS_API_KEY: ${{ secrets.API_KEY  }}
       OCTOPUS_URL: ${{ secrets.SERVER }}
