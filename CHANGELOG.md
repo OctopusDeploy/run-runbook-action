@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.0...v4.1.0) (2026-02-03)
+
+
+### Features
+
+* Add workflow to check for conventional commit format PR title ([#514](https://github.com/OctopusDeploy/run-runbook-action/issues/514)) ([b5341cf](https://github.com/OctopusDeploy/run-runbook-action/commit/b5341cfc5e55b5e0c54876d47c2ebf35ebb6f31e))
+
 ## [4.0.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.3.1...v4.0.0) (2025-12-10)
 
 
