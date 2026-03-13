@@ -9,7 +9,7 @@
   },
   "description": "GitHub Action to Run a Runbook in Octopus Deploy",
   "devDependencies": {
-    "@eslint/eslintrc": "3.3.3",
+    "@eslint/eslintrc": "3.3.5",
     "@eslint/js": "9.39.2",
     "@stylistic/eslint-plugin": "5.7.1",
     "@types/jest": "29.5.14",
