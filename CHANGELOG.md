@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.0.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.0...v4.0.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **deps:** Resolve dependency security alerts ([#562](https://github.com/OctopusDeploy/run-runbook-action/issues/562)) ([e35a423](https://github.com/OctopusDeploy/run-runbook-action/commit/e35a4239c6e0bc1b038ab75ae7e3ec78a420cfd0))
+* **deps:** Update core/actions to v3 ([#559](https://github.com/OctopusDeploy/run-runbook-action/issues/559)) ([18942b6](https://github.com/OctopusDeploy/run-runbook-action/commit/18942b6dfaf0d7410a24c7882ffcff46007a1f67))
+
 ## [4.0.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.3.1...v4.0.0) (2025-12-10)
 
 
