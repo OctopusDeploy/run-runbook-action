@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.2](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.1...v4.0.2) (2026-06-08)
+
+
+### Bug Fixes
+
+* update axios to v1.17.0 ([#578](https://github.com/OctopusDeploy/run-runbook-action/issues/578)) ([2a1bbcf](https://github.com/OctopusDeploy/run-runbook-action/commit/2a1bbcf30661e3449921bd4def0d46cc204256b3))
+
 ## [4.0.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.0...v4.0.1) (2026-04-23)
 
 
