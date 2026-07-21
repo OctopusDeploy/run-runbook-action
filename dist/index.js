@@ -20362,7 +20362,11 @@ var require_utils2 = __commonJS({
           try {
             stat2 = self2.fs.statSync(resolvedPath);
           } catch (e) {
-            self2.fs.mkdirSync(resolvedPath);
+            if (e.message && e.message.startsWith("ENOENT")) {
+              self2.fs.mkdirSync(resolvedPath);
+            } else {
+              throw e;
+            }
           }
           if (stat2 && stat2.isFile()) throw Errors.FILE_IN_THE_WAY(`"${resolvedPath}"`);
         });
@@ -20408,37 +20412,40 @@ var require_utils2 = __commonJS({
       self2.fs.exists(path, function(exist) {
         if (exist && !overwrite) return callback(false);
         self2.fs.stat(path, function(err, stat2) {
-          if (exist && stat2.isDirectory()) {
+          if (exist && stat2 && stat2.isDirectory()) {
             return callback(false);
           }
           var folder = pth.dirname(path);
           self2.fs.exists(folder, function(exists2) {
-            if (!exists2) self2.makeDir(folder);
+            if (!exists2) {
+              try {
+                self2.makeDir(folder);
+              } catch (e) {
+                return callback(false);
+              }
+            }
+            const writeToFd = function(fd) {
+              self2.fs.write(fd, content, 0, content.length, 0, function(writeErr) {
+                self2.fs.close(fd, function() {
+                  if (writeErr) return callback(false);
+                  self2.fs.chmod(path, attr || 438, function() {
+                    callback(true);
+                  });
+                });
+              });
+            };
             self2.fs.open(path, "w", 438, function(err2, fd) {
               if (err2) {
                 self2.fs.chmod(path, 438, function() {
-                  self2.fs.open(path, "w", 438, function(err3, fd2) {
-                    self2.fs.write(fd2, content, 0, content.length, 0, function() {
-                      self2.fs.close(fd2, function() {
-                        self2.fs.chmod(path, attr || 438, function() {
-                          callback(true);
-                        });
-                      });
-                    });
+                  self2.fs.open(path, "w", 438, function(retryErr, fd2) {
+                    if (retryErr || !fd2) return callback(false);
+                    writeToFd(fd2);
                   });
                 });
               } else if (fd) {
-                self2.fs.write(fd, content, 0, content.length, 0, function() {
-                  self2.fs.close(fd, function() {
-                    self2.fs.chmod(path, attr || 438, function() {
-                      callback(true);
-                    });
-                  });
-                });
+                writeToFd(fd);
               } else {
-                self2.fs.chmod(path, attr || 438, function() {
-                  callback(true);
-                });
+                callback(false);
               }
             });
           });
@@ -20447,7 +20454,7 @@ var require_utils2 = __commonJS({
     };
     Utils.prototype.findFiles = function(path) {
       const self2 = this;
-      function findSync(dir, pattern, recursive) {
+      function findSync(dir, pattern, recursive, visited) {
         if (typeof pattern === "boolean") {
           recursive = pattern;
           pattern = void 0;
@@ -20459,37 +20466,64 @@ var require_utils2 = __commonJS({
           if (!pattern || pattern.test(path2)) {
             files.push(pth.normalize(path2) + (stat2.isDirectory() ? self2.sep : ""));
           }
-          if (stat2.isDirectory() && recursive) files = files.concat(findSync(path2, pattern, recursive));
+          if (stat2.isDirectory() && recursive) {
+            const realDir = self2.fs.realpathSync(path2);
+            if (!visited.has(realDir)) {
+              visited.add(realDir);
+              files = files.concat(findSync(path2, pattern, recursive, visited));
+            }
+          }
         });
         return files;
       }
-      return findSync(path, void 0, true);
+      return findSync(path, void 0, true, /* @__PURE__ */ new Set([self2.fs.realpathSync(path)]));
     };
     Utils.prototype.findFilesAsync = function(dir, cb) {
       const self2 = this;
-      let results = [];
-      self2.fs.readdir(dir, function(err, list) {
-        if (err) return cb(err);
-        let list_length = list.length;
-        if (!list_length) return cb(null, results);
-        list.forEach(function(file) {
-          file = pth.join(dir, file);
-          self2.fs.stat(file, function(err2, stat2) {
-            if (err2) return cb(err2);
-            if (stat2) {
-              results.push(pth.normalize(file) + (stat2.isDirectory() ? self2.sep : ""));
-              if (stat2.isDirectory()) {
-                self2.findFilesAsync(file, function(err3, res) {
-                  if (err3) return cb(err3);
-                  results = results.concat(res);
-                  if (!--list_length) cb(null, results);
-                });
-              } else {
-                if (!--list_length) cb(null, results);
+      const results = [];
+      let finished = false;
+      const finish = function(err) {
+        if (finished) return;
+        finished = true;
+        cb(err, err ? void 0 : results);
+      };
+      const walk = function(dir2, visited, done) {
+        self2.fs.readdir(dir2, function(err, list) {
+          if (err) return done(err);
+          let pending = list.length;
+          if (!pending) return done();
+          list.forEach(function(name) {
+            const file = pth.join(dir2, name);
+            self2.fs.stat(file, function(err2, stat2) {
+              if (err2) return done(err2);
+              if (!stat2) {
+                if (!--pending) done();
+                return;
               }
-            }
+              results.push(pth.normalize(file) + (stat2.isDirectory() ? self2.sep : ""));
+              if (!stat2.isDirectory()) {
+                if (!--pending) done();
+                return;
+              }
+              self2.fs.realpath(file, function(err3, realDir) {
+                if (err3) return done(err3);
+                if (visited.has(realDir)) {
+                  if (!--pending) done();
+                  return;
+                }
+                visited.add(realDir);
+                walk(file, visited, function(err4) {
+                  if (err4) return done(err4);
+                  if (!--pending) done();
+                });
+              });
+            });
           });
         });
+      };
+      self2.fs.realpath(dir, function(err, realDir) {
+        if (err) return finish(err);
+        walk(dir, /* @__PURE__ */ new Set([realDir]), finish);
       });
     };
     Utils.prototype.getAttributes = function() {
@@ -20543,7 +20577,7 @@ var require_utils2 = __commonJS({
       var parts = name.split("/");
       for (var i = 0, l = parts.length; i < l; i++) {
         var path = pth.normalize(pth.join(prefix, parts.slice(i, l).join(pth.sep)));
-        if (path.indexOf(prefix) === 0) {
+        if (path === prefix || path.startsWith(prefix + pth.sep)) {
           return path;
         }
       }
@@ -20559,9 +20593,15 @@ var require_utils2 = __commonJS({
       }
     };
     Utils.readBigUInt64LE = function(buffer, index) {
-      var slice = Buffer.from(buffer.slice(index, index + 8));
-      slice.swap64();
-      return parseInt(`0x${slice.toString("hex")}`);
+      const lo = buffer.readUInt32LE(index);
+      const hi = buffer.readUInt32LE(index + 4);
+      return hi * 4294967296 + lo;
+    };
+    Utils.writeBigUInt64LE = function(buffer, value, index) {
+      const lo = value >>> 0;
+      const hi = Math.floor(value / 4294967296) >>> 0;
+      buffer.writeUInt32LE(lo, index);
+      buffer.writeUInt32LE(hi, index + 4);
     };
     Utils.fromDOS2Date = function(val) {
       return new Date((val >> 25 & 127) + 1980, Math.max((val >> 21 & 15) - 1, 0), Math.max(val >> 16 & 31, 1), val >> 11 & 31, val >> 5 & 63, (val & 31) << 1);
@@ -20733,6 +20773,7 @@ var require_entryHeader = __commonJS({
           switch (val) {
             case Constants.STORED:
               this.version = 10;
+              break;
             case Constants.DEFLATED:
             default:
               this.version = 20;
@@ -20743,6 +20784,7 @@ var require_entryHeader = __commonJS({
           return Utils.fromDOS2Date(this.timeval);
         },
         set time(val) {
+          val = new Date(val);
           this.timeval = Utils.fromDate2DOS(val);
         },
         get timeval() {
@@ -20843,6 +20885,7 @@ var require_entryHeader = __commonJS({
           }
           _localHeader.version = data.readUInt16LE(Constants.LOCVER);
           _localHeader.flags = data.readUInt16LE(Constants.LOCFLG);
+          _localHeader.flags_desc = (_localHeader.flags & Constants.FLG_DESC) > 0;
           _localHeader.method = data.readUInt16LE(Constants.LOCHOW);
           _localHeader.time = data.readUInt32LE(Constants.LOCTIM);
           _localHeader.crc = data.readUInt32LE(Constants.LOCCRC);
@@ -20878,7 +20921,7 @@ var require_entryHeader = __commonJS({
           var data = Buffer.alloc(Constants.LOCHDR);
           data.writeUInt32LE(Constants.LOCSIG, 0);
           data.writeUInt16LE(_version, Constants.LOCVER);
-          data.writeUInt16LE(_flags, Constants.LOCFLG);
+          data.writeUInt16LE(_flags & ~Constants.FLG_DESC, Constants.LOCFLG);
           data.writeUInt16LE(_method, Constants.LOCHOW);
           data.writeUInt32LE(_time, Constants.LOCTIM);
           data.writeUInt32LE(_crc, Constants.LOCCRC);
@@ -20893,7 +20936,7 @@ var require_entryHeader = __commonJS({
           data.writeUInt32LE(Constants.CENSIG, 0);
           data.writeUInt16LE(_verMade, Constants.CENVEM);
           data.writeUInt16LE(_version, Constants.CENVER);
-          data.writeUInt16LE(_flags, Constants.CENFLG);
+          data.writeUInt16LE(_flags & ~Constants.FLG_DESC, Constants.CENFLG);
           data.writeUInt16LE(_method, Constants.CENHOW);
           data.writeUInt32LE(_time, Constants.CENTIM);
           data.writeUInt32LE(_crc, Constants.CENCRC);
@@ -20946,6 +20989,7 @@ var require_mainHeader = __commonJS({
     var Constants = Utils.Constants;
     module2.exports = function() {
       var _volumeEntries = 0, _totalEntries = 0, _size = 0, _offset = 0, _commentLength = 0;
+      const needsZip64 = () => _volumeEntries > Constants.EF_ZIP64_OR_16 || _totalEntries > Constants.EF_ZIP64_OR_16 || _size > Constants.EF_ZIP64_OR_32 || _offset > Constants.EF_ZIP64_OR_32;
       return {
         get diskEntries() {
           return _volumeEntries;
@@ -20978,7 +21022,7 @@ var require_mainHeader = __commonJS({
           _commentLength = val;
         },
         get mainHeaderSize() {
-          return Constants.ENDHDR + _commentLength;
+          return (needsZip64() ? Constants.ZIP64HDR + Constants.END64HDR : 0) + Constants.ENDHDR + _commentLength;
         },
         loadFromBinary: function(data) {
           if ((data.length !== Constants.ENDHDR || data.readUInt32LE(0) !== Constants.ENDSIG) && (data.length < Constants.ZIP64HDR || data.readUInt32LE(0) !== Constants.ZIP64SIG)) {
@@ -20993,21 +21037,51 @@ var require_mainHeader = __commonJS({
           } else {
             _volumeEntries = Utils.readBigUInt64LE(data, Constants.ZIP64SUB);
             _totalEntries = Utils.readBigUInt64LE(data, Constants.ZIP64TOT);
-            _size = Utils.readBigUInt64LE(data, Constants.ZIP64SIZE);
+            _size = Utils.readBigUInt64LE(data, Constants.ZIP64SIZB);
             _offset = Utils.readBigUInt64LE(data, Constants.ZIP64OFF);
             _commentLength = 0;
           }
         },
         toBinary: function() {
-          var b = Buffer.alloc(Constants.ENDHDR + _commentLength);
-          b.writeUInt32LE(Constants.ENDSIG, 0);
-          b.writeUInt32LE(0, 4);
-          b.writeUInt16LE(_volumeEntries, Constants.ENDSUB);
-          b.writeUInt16LE(_totalEntries, Constants.ENDTOT);
-          b.writeUInt32LE(_size, Constants.ENDSIZ);
-          b.writeUInt32LE(_offset, Constants.ENDOFF);
-          b.writeUInt16LE(_commentLength, Constants.ENDCOM);
-          b.fill(" ", Constants.ENDHDR);
+          if (!needsZip64()) {
+            var b = Buffer.alloc(Constants.ENDHDR + _commentLength);
+            b.writeUInt32LE(Constants.ENDSIG, 0);
+            b.writeUInt32LE(0, 4);
+            b.writeUInt16LE(_volumeEntries, Constants.ENDSUB);
+            b.writeUInt16LE(_totalEntries, Constants.ENDTOT);
+            b.writeUInt32LE(_size, Constants.ENDSIZ);
+            b.writeUInt32LE(_offset, Constants.ENDOFF);
+            b.writeUInt16LE(_commentLength, Constants.ENDCOM);
+            b.fill(" ", Constants.ENDHDR);
+            return b;
+          }
+          var b = Buffer.alloc(this.mainHeaderSize);
+          let offset = 0;
+          b.writeUInt32LE(Constants.ZIP64SIG, offset);
+          Utils.writeBigUInt64LE(b, Constants.ZIP64HDR - Constants.ZIP64LEAD, offset + Constants.ZIP64SIZE);
+          b.writeUInt16LE(45, offset + Constants.ZIP64VEM);
+          b.writeUInt16LE(45, offset + Constants.ZIP64VER);
+          b.writeUInt32LE(0, offset + Constants.ZIP64DSK);
+          b.writeUInt32LE(0, offset + Constants.ZIP64DSKDIR);
+          Utils.writeBigUInt64LE(b, _volumeEntries, offset + Constants.ZIP64SUB);
+          Utils.writeBigUInt64LE(b, _totalEntries, offset + Constants.ZIP64TOT);
+          Utils.writeBigUInt64LE(b, _size, offset + Constants.ZIP64SIZB);
+          Utils.writeBigUInt64LE(b, _offset, offset + Constants.ZIP64OFF);
+          const zip64EndOffset = _offset + _size;
+          offset += Constants.ZIP64HDR;
+          b.writeUInt32LE(Constants.END64SIG, offset);
+          b.writeUInt32LE(0, offset + Constants.END64START);
+          Utils.writeBigUInt64LE(b, zip64EndOffset, offset + Constants.END64OFF);
+          b.writeUInt32LE(1, offset + Constants.END64NUMDISKS);
+          offset += Constants.END64HDR;
+          b.writeUInt32LE(Constants.ENDSIG, offset);
+          b.writeUInt32LE(0, offset + 4);
+          b.writeUInt16LE(Math.min(_volumeEntries, Constants.EF_ZIP64_OR_16), offset + Constants.ENDSUB);
+          b.writeUInt16LE(Math.min(_totalEntries, Constants.EF_ZIP64_OR_16), offset + Constants.ENDTOT);
+          b.writeUInt32LE(Math.min(_size, Constants.EF_ZIP64_OR_32), offset + Constants.ENDSIZ);
+          b.writeUInt32LE(Math.min(_offset, Constants.EF_ZIP64_OR_32), offset + Constants.ENDOFF);
+          b.writeUInt16LE(_commentLength, offset + Constants.ENDCOM);
+          b.fill(" ", offset + Constants.ENDHDR);
           return b;
         },
         toJSON: function() {
@@ -21076,7 +21150,7 @@ var require_deflater = __commonJS({
 // node_modules/adm-zip/methods/inflater.js
 var require_inflater = __commonJS({
   "node_modules/adm-zip/methods/inflater.js"(exports2, module2) {
-    var version = +(process.versions ? process.versions.node : "").split(".")[0] || 0;
+    var version = +(process?.versions?.node ?? "").split(".")[0] || 0;
     module2.exports = function(inbuf, expectedLength) {
       var zlib = require("zlib");
       const option = version >= 15 && expectedLength > 0 ? { maxOutputLength: expectedLength } : {};
@@ -21252,35 +21326,8 @@ var require_zipEntry = __commonJS({
         return input.slice(_centralHeader.realDataOffset, _centralHeader.realDataOffset + _centralHeader.compressedSize);
       }
       function crc32OK(data) {
-        if (!_centralHeader.flags_desc) {
-          if (Utils.crc32(data) !== _centralHeader.localHeader.crc) {
-            return false;
-          }
-        } else {
-          const descriptor = {};
-          const dataEndOffset = _centralHeader.realDataOffset + _centralHeader.compressedSize;
-          if (input.readUInt32LE(dataEndOffset) == Constants.LOCSIG || input.readUInt32LE(dataEndOffset) == Constants.CENSIG) {
-            throw Utils.Errors.DESCRIPTOR_NOT_EXIST();
-          }
-          if (input.readUInt32LE(dataEndOffset) == Constants.EXTSIG) {
-            descriptor.crc = input.readUInt32LE(dataEndOffset + Constants.EXTCRC);
-            descriptor.compressedSize = input.readUInt32LE(dataEndOffset + Constants.EXTSIZ);
-            descriptor.size = input.readUInt32LE(dataEndOffset + Constants.EXTLEN);
-          } else if (input.readUInt16LE(dataEndOffset + 12) === 19280) {
-            descriptor.crc = input.readUInt32LE(dataEndOffset + Constants.EXTCRC - 4);
-            descriptor.compressedSize = input.readUInt32LE(dataEndOffset + Constants.EXTSIZ - 4);
-            descriptor.size = input.readUInt32LE(dataEndOffset + Constants.EXTLEN - 4);
-          } else {
-            throw Utils.Errors.DESCRIPTOR_UNKNOWN();
-          }
-          if (descriptor.compressedSize !== _centralHeader.compressedSize || descriptor.size !== _centralHeader.size || descriptor.crc !== _centralHeader.crc) {
-            throw Utils.Errors.DESCRIPTOR_FAULTY();
-          }
-          if (Utils.crc32(data) !== descriptor.crc) {
-            return false;
-          }
-        }
-        return true;
+        const expectedCrc = _centralHeader.flags_desc || _centralHeader.localHeader.flags_desc ? _centralHeader.crc : _centralHeader.localHeader.crc;
+        return Utils.crc32(data) === expectedCrc;
       }
       function decompress(async, callback, pass) {
         if (typeof callback === "undefined" && typeof async === "string") {
@@ -21304,9 +21351,10 @@ var require_zipEntry = __commonJS({
           }
           compressedData = Methods.ZipCrypto.decrypt(compressedData, _centralHeader, pass);
         }
-        var data = Buffer.alloc(_centralHeader.size);
+        var data;
         switch (_centralHeader.method) {
           case Utils.Constants.STORED:
+            data = Buffer.alloc(compressedData.length);
             compressedData.copy(data);
             if (!crc32OK(data)) {
               if (async && callback) callback(data, Utils.Errors.BAD_CRC());
@@ -21318,15 +21366,13 @@ var require_zipEntry = __commonJS({
           case Utils.Constants.DEFLATED:
             var inflater = new Methods.Inflater(compressedData, _centralHeader.size);
             if (!async) {
-              const result = inflater.inflate(data);
-              result.copy(data, 0);
+              data = inflater.inflate();
               if (!crc32OK(data)) {
                 throw Utils.Errors.BAD_CRC(`"${decoder.decode(_entryName)}"`);
               }
               return data;
             } else {
               inflater.inflateAsync(function(result) {
-                result.copy(result, 0);
                 if (callback) {
                   if (!crc32OK(result)) {
                     callback(result, Utils.Errors.BAD_CRC());
@@ -21381,7 +21427,7 @@ var require_zipEntry = __commonJS({
         }
       }
       function readUInt64LE(buffer, offset) {
-        return (buffer.readUInt32LE(offset + 4) << 4) + buffer.readUInt32LE(offset);
+        return Utils.readBigUInt64LE(buffer, offset);
       }
       function parseExtra(data) {
         try {
@@ -21466,8 +21512,8 @@ var require_zipEntry = __commonJS({
           if (_comment.length > 65535) throw Utils.Errors.COMMENT_TOO_LONG();
         },
         get name() {
-          var n = decoder.decode(_entryName);
-          return _isDirectory ? n.substr(n.length - 1).split("/").pop() : n.split("/").pop();
+          const n = decoder.decode(_entryName);
+          return _isDirectory ? n.replace(/[/\\]$/, "").split("/").pop() : n.split("/").pop();
         },
         get isDirectory() {
           return _isDirectory;
@@ -21570,7 +21616,7 @@ var require_zipFile = __commonJS({
     var Headers2 = require_headers2();
     var Utils = require_util9();
     module2.exports = function(inBuffer, options) {
-      var entryList = [], entryTable = {}, _comment = Buffer.alloc(0), mainHeader = new Headers2.MainHeader(), loadedEntries = false;
+      var entryList = [], entryTable = /* @__PURE__ */ Object.create(null), _comment = Buffer.alloc(0), mainHeader = new Headers2.MainHeader(), loadedEntries = false;
       var password = null;
       const temporary = /* @__PURE__ */ new Set();
       const opts = options;
@@ -21605,7 +21651,7 @@ var require_zipFile = __commonJS({
       }
       function readEntries() {
         loadedEntries = true;
-        entryTable = {};
+        entryTable = /* @__PURE__ */ Object.create(null);
         if (mainHeader.diskEntries > (inBuffer.length - mainHeader.offset) / Utils.Constants.CENHDR) {
           throw Utils.Errors.DISK_ENTRY_TOO_LARGE();
         }
@@ -21658,7 +21704,7 @@ var require_zipFile = __commonJS({
       }
       function sortEntries() {
         if (entryList.length > 1 && !noSort) {
-          entryList.sort((a, b) => a.entryName.toLowerCase().localeCompare(b.entryName.toLowerCase()));
+          entryList = entryList.map((entry) => ({ entry, key: entry.entryName.toLowerCase() })).sort((a, b) => a.key.localeCompare(b.key)).map((pair) => pair.entry);
         }
       }
       return {
@@ -21835,7 +21881,7 @@ var require_zipFile = __commonJS({
           }
           const mh = mainHeader.toBinary();
           if (_comment) {
-            _comment.copy(mh, Utils.Constants.ENDHDR);
+            _comment.copy(mh, mh.length - _comment.length);
           }
           mh.copy(outBuffer, dindex);
           inBuffer = outBuffer;
@@ -21891,7 +21937,7 @@ var require_zipFile = __commonJS({
                 });
                 const mh = mainHeader.toBinary();
                 if (_comment) {
-                  _comment.copy(mh, Utils.Constants.ENDHDR);
+                  _comment.copy(mh, mh.length - _comment.length);
                 }
                 mh.copy(outBuffer, dindex);
                 inBuffer = outBuffer;
@@ -21946,6 +21992,9 @@ var require_adm_zip = __commonJS({
       }
       Object.assign(opts, options);
       const filetools = new Utils(opts);
+      const applyDirAttributes = (dirEntries) => {
+        dirEntries.filter((d) => d.attr).sort((a, b) => b.path.length - a.path.length).forEach((d) => filetools.fs.chmodSync(d.path, d.attr));
+      };
       if (typeof opts.decoder !== "object" || typeof opts.decoder.encode !== "function" || typeof opts.decoder.decode !== "function") {
         opts.decoder = Utils.decoder;
       }
@@ -21973,7 +22022,7 @@ var require_adm_zip = __commonJS({
       }
       function fixPath(zipPath) {
         const { join, normalize, sep } = pth.posix;
-        return join(".", normalize(sep + zipPath.split("\\").join(sep) + sep));
+        return join(pth.isAbsolute(zipPath) ? "/" : ".", normalize(sep + zipPath.split("\\").join(sep) + sep));
       }
       function filenameFilter(filterfn) {
         if (filterfn instanceof RegExp) {
@@ -22076,6 +22125,7 @@ var require_adm_zip = __commonJS({
          * Remove the entry from the file or the entry and all it's nested directories and files if the given entry is a directory
          *
          * @param {ZipEntry|string} entry
+         * @param {boolean} withsubfolders
          * @returns {void}
          */
         deleteFile: function(entry, withsubfolders = true) {
@@ -22158,17 +22208,17 @@ var require_adm_zip = __commonJS({
          * @param {string} [zipName] Optional name for the file
          * @param {string} [comment] Optional file comment
          */
-        addLocalFile: function(localPath2, zipPath, zipName, comment) {
-          if (filetools.fs.existsSync(localPath2)) {
+        addLocalFile: function(localPath, zipPath, zipName, comment) {
+          if (filetools.fs.existsSync(localPath)) {
             zipPath = zipPath ? fixPath(zipPath) : "";
-            const p = pth.win32.basename(pth.win32.normalize(localPath2));
+            const p = pth.win32.basename(pth.win32.normalize(localPath));
             zipPath += zipName ? zipName : p;
-            const _attr = filetools.fs.statSync(localPath2);
-            const data = _attr.isFile() ? filetools.fs.readFileSync(localPath2) : Buffer.alloc(0);
+            const _attr = filetools.fs.statSync(localPath);
+            const data = _attr.isFile() ? filetools.fs.readFileSync(localPath) : Buffer.alloc(0);
             if (_attr.isDirectory()) zipPath += filetools.sep;
             this.addFile(zipPath, data, comment, _attr);
           } else {
-            throw Utils.Errors.FILE_NOT_FOUND(localPath2);
+            throw Utils.Errors.FILE_NOT_FOUND(localPath);
           }
         },
         /**
@@ -22190,17 +22240,17 @@ var require_adm_zip = __commonJS({
          */
         addLocalFileAsync: function(options2, callback) {
           options2 = typeof options2 === "object" ? options2 : { localPath: options2 };
-          const localPath2 = pth.resolve(options2.localPath);
+          const localPath = pth.resolve(options2.localPath);
           const { comment } = options2;
           let { zipPath, zipName } = options2;
           const self2 = this;
-          filetools.fs.stat(localPath2, function(err, stats) {
+          filetools.fs.stat(localPath, function(err, stats) {
             if (err) return callback(err, false);
             zipPath = zipPath ? fixPath(zipPath) : "";
-            const p = pth.win32.basename(pth.win32.normalize(localPath2));
+            const p = pth.win32.basename(pth.win32.normalize(localPath));
             zipPath += zipName ? zipName : p;
             if (stats.isFile()) {
-              filetools.fs.readFile(localPath2, function(err2, data) {
+              filetools.fs.readFile(localPath, function(err2, data) {
                 if (err2) return callback(err2, false);
                 self2.addFile(zipPath, data, comment, stats);
                 return setImmediate(callback, void 0, true);
@@ -22219,23 +22269,23 @@ var require_adm_zip = __commonJS({
          * @param {string} [zipPath] - optional path inside zip
          * @param {(RegExp|function)} [filter] - optional RegExp or Function if files match will be included.
          */
-        addLocalFolder: function(localPath2, zipPath, filter) {
+        addLocalFolder: function(localPath, zipPath, filter) {
           filter = filenameFilter(filter);
           zipPath = zipPath ? fixPath(zipPath) : "";
-          localPath2 = pth.normalize(localPath2);
-          if (filetools.fs.existsSync(localPath2)) {
-            const items = filetools.findFiles(localPath2);
+          localPath = pth.normalize(localPath);
+          if (filetools.fs.existsSync(localPath)) {
+            const items = filetools.findFiles(localPath);
             const self2 = this;
             if (items.length) {
               for (const filepath of items) {
-                const p = pth.join(zipPath, relativePath(localPath2, filepath));
+                const p = pth.join(zipPath, relativePath(localPath, filepath));
                 if (filter(p)) {
                   self2.addLocalFile(filepath, pth.dirname(p));
                 }
               }
             }
           } else {
-            throw Utils.Errors.FILE_NOT_FOUND(localPath2);
+            throw Utils.Errors.FILE_NOT_FOUND(localPath);
           }
         },
         /**
@@ -22246,24 +22296,24 @@ var require_adm_zip = __commonJS({
          * @param {RegExp|function} [filter] optional RegExp or Function if files match will
          *               be included.
          */
-        addLocalFolderAsync: function(localPath2, callback, zipPath, filter) {
+        addLocalFolderAsync: function(localPath, callback, zipPath, filter) {
           filter = filenameFilter(filter);
           zipPath = zipPath ? fixPath(zipPath) : "";
-          localPath2 = pth.normalize(localPath2);
+          localPath = pth.normalize(localPath);
           var self2 = this;
-          filetools.fs.open(localPath2, "r", function(err) {
+          filetools.fs.open(localPath, "r", function(err) {
             if (err && err.code === "ENOENT") {
-              callback(void 0, Utils.Errors.FILE_NOT_FOUND(localPath2));
+              callback(void 0, Utils.Errors.FILE_NOT_FOUND(localPath));
             } else if (err) {
               callback(void 0, err);
             } else {
-              var items = filetools.findFiles(localPath2);
+              var items = filetools.findFiles(localPath);
               var i = -1;
               var next = function() {
                 i += 1;
                 if (i < items.length) {
                   var filepath = items[i];
-                  var p = relativePath(localPath2, filepath).split("\\").join("/");
+                  var p = relativePath(localPath, filepath).split("\\").join("/");
                   p = p.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "");
                   if (filter(p)) {
                     filetools.fs.stat(filepath, function(er0, stats) {
@@ -22309,7 +22359,7 @@ var require_adm_zip = __commonJS({
         addLocalFolderAsync2: function(options2, callback) {
           const self2 = this;
           options2 = typeof options2 === "object" ? options2 : { localPath: options2 };
-          localPath = pth.resolve(fixPath(options2.localPath));
+          const localPath = pth.resolve(fixPath(options2.localPath));
           let { zipPath, filter, namefix } = options2;
           if (filter instanceof RegExp) {
             filter = /* @__PURE__ */ function(rx) {
@@ -22323,7 +22373,7 @@ var require_adm_zip = __commonJS({
             };
           }
           zipPath = zipPath ? fixPath(zipPath) : "";
-          if (namefix == "latin1") {
+          if (namefix === "latin1") {
             namefix = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "");
           }
           if (typeof namefix !== "function") namefix = (str) => str;
@@ -22367,9 +22417,9 @@ var require_adm_zip = __commonJS({
          * @param {RegExp|function} [props.filter] - optional RegExp or Function if files match will be included.
          * @param {function|string} [props.namefix] - optional function to help fix filename
          */
-        addLocalFolderPromise: function(localPath2, props) {
+        addLocalFolderPromise: function(localPath, props) {
           return new Promise((resolve, reject) => {
-            this.addLocalFolderAsync2(Object.assign({ localPath: localPath2 }, props), (err, done) => {
+            this.addLocalFolderAsync2(Object.assign({ localPath }, props), (err, done) => {
               if (err) reject(err);
               if (done) resolve(this);
             });
@@ -22461,7 +22511,7 @@ var require_adm_zip = __commonJS({
             throw Utils.Errors.NO_ENTRY();
           }
           var entryName = canonical(item.entryName);
-          var target = sanitize(targetPath, outFileName && !item.isDirectory ? outFileName : maintainEntryPath ? entryName : pth.basename(entryName));
+          var target = sanitize(targetPath, outFileName && !item.isDirectory ? canonical(outFileName) : maintainEntryPath ? entryName : pth.basename(entryName));
           if (item.isDirectory) {
             var children = _zip.getEntryChildren(item);
             children.forEach(function(child) {
@@ -22470,8 +22520,8 @@ var require_adm_zip = __commonJS({
               if (!content2) {
                 throw Utils.Errors.CANT_EXTRACT_FILE();
               }
-              var name = canonical(child.entryName);
-              var childName = sanitize(targetPath, maintainEntryPath ? name : pth.basename(name));
+              var name = canonical(maintainEntryPath ? child.entryName : child.entryName.substring(item.entryName.length));
+              var childName = sanitize(targetPath, name);
               const fileAttr2 = keepOriginalPermission ? child.header.fileAttr : void 0;
               filetools.writeFileTo(childName, content2, overwrite, fileAttr2);
             });
@@ -22494,12 +22544,12 @@ var require_adm_zip = __commonJS({
           if (!_zip) {
             return false;
           }
-          for (var entry in _zip.entries) {
+          for (var entry of _zip.entries) {
             try {
               if (entry.isDirectory) {
                 continue;
               }
-              var content = _zip.entries[entry].getData(pass);
+              var content = entry.getData(pass);
               if (!content) {
                 return false;
               }
@@ -22524,10 +22574,12 @@ var require_adm_zip = __commonJS({
           pass = get_Str(keepOriginalPermission, pass);
           overwrite = get_Bool(false, overwrite);
           if (!_zip) throw Utils.Errors.NO_ZIP();
+          const dirEntries = [];
           _zip.entries.forEach(function(entry) {
             var entryName = sanitize(targetPath, canonical(entry.entryName));
             if (entry.isDirectory) {
               filetools.makeDir(entryName);
+              if (keepOriginalPermission) dirEntries.push({ path: entryName, attr: entry.header.fileAttr });
               return;
             }
             var content = entry.getData(pass);
@@ -22539,9 +22591,9 @@ var require_adm_zip = __commonJS({
             try {
               filetools.fs.utimesSync(entryName, entry.header.time, entry.header.time);
             } catch (err) {
-              throw Utils.Errors.CANT_EXTRACT_FILE();
             }
           });
+          applyDirAttributes(dirEntries);
         },
         /**
          * Asynchronous extractAllTo
@@ -22584,17 +22636,32 @@ var require_adm_zip = __commonJS({
               fileEntries.push(e);
             }
           });
+          const deferredDirAttr = [];
           for (const entry of dirEntries) {
             const dirPath = getPath(entry);
             const dirAttr = keepOriginalPermission ? entry.header.fileAttr : void 0;
             try {
               filetools.makeDir(dirPath);
-              if (dirAttr) filetools.fs.chmodSync(dirPath, dirAttr);
-              filetools.fs.utimesSync(dirPath, entry.header.time, entry.header.time);
             } catch (er) {
               callback(getError("Unable to create folder", dirPath));
+              continue;
+            }
+            if (dirAttr) deferredDirAttr.push({ path: dirPath, attr: dirAttr });
+            try {
+              filetools.fs.utimesSync(dirPath, entry.header.time, entry.header.time);
+            } catch (er) {
             }
           }
+          const done = (err) => {
+            if (!err) {
+              try {
+                applyDirAttributes(deferredDirAttr);
+              } catch (er) {
+                return callback(getError("Unable to set folder permissions", er.path || ""));
+              }
+            }
+            callback(err);
+          };
           fileEntries.reverse().reduce(function(next, entry) {
             return function(err) {
               if (err) {
@@ -22611,21 +22678,17 @@ var require_adm_zip = __commonJS({
                     const fileAttr = keepOriginalPermission ? entry.header.fileAttr : void 0;
                     filetools.writeFileToAsync(filePath, content, overwrite, fileAttr, function(succ) {
                       if (!succ) {
-                        next(getError("Unable to write file", filePath));
+                        return next(getError("Unable to write file", filePath));
                       }
-                      filetools.fs.utimes(filePath, entry.header.time, entry.header.time, function(err_2) {
-                        if (err_2) {
-                          next(getError("Unable to set times", filePath));
-                        } else {
-                          next();
-                        }
+                      filetools.fs.utimes(filePath, entry.header.time, entry.header.time, function() {
+                        next();
                       });
                     });
                   }
                 });
               }
             };
-          }, callback)();
+          }, done)();
         },
         /**
          * Writes the newly created zip file to disk at the specified location or if a zip was opened and no ``targetFileName`` is provided, it will overwrite the opened zip
@@ -42093,9 +42156,11 @@ var require_feedType = __commonJS({
       FeedType2["AwsElasticContainerRegistry"] = "AwsElasticContainerRegistry";
       FeedType2["BuiltIn"] = "BuiltIn";
       FeedType2["Docker"] = "Docker";
+      FeedType2["GcsStorage"] = "GcsStorage";
       FeedType2["GitHub"] = "GitHub";
       FeedType2["Helm"] = "Helm";
       FeedType2["Maven"] = "Maven";
+      FeedType2["Npm"] = "Npm";
       FeedType2["Nuget"] = "NuGet";
       FeedType2["OctopusProject"] = "OctopusProject";
     })(FeedType = exports2.FeedType || (exports2.FeedType = {}));
@@ -42188,6 +42253,14 @@ var require_feedRepository = __commonJS({
   }
 });
 
+// node_modules/@octopusdeploy/api-client/dist/features/feeds/gcsStorageFeed.js
+var require_gcsStorageFeed = __commonJS({
+  "node_modules/@octopusdeploy/api-client/dist/features/feeds/gcsStorageFeed.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+  }
+});
+
 // node_modules/@octopusdeploy/api-client/dist/features/feeds/gitHubFeed.js
 var require_gitHubFeed = __commonJS({
   "node_modules/@octopusdeploy/api-client/dist/features/feeds/gitHubFeed.js"(exports2) {
@@ -42263,6 +42336,7 @@ var require_feeds = __commonJS({
     __exportStar(require_feed(), exports2);
     __exportStar(require_feedRepository(), exports2);
     __exportStar(require_feedType(), exports2);
+    __exportStar(require_gcsStorageFeed(), exports2);
     __exportStar(require_gitHubFeed(), exports2);
     __exportStar(require_helmFeed(), exports2);
     __exportStar(require_mavenFeed(), exports2);
@@ -47830,6 +47904,147 @@ var require_semver2 = __commonJS({
   }
 });
 
+// node_modules/@octopusdeploy/api-client/dist/versionCheck.js
+var require_versionCheck = __commonJS({
+  "node_modules/@octopusdeploy/api-client/dist/versionCheck.js"(exports2) {
+    "use strict";
+    var __awaiter2 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
+    };
+    var __generator = exports2 && exports2.__generator || function(thisArg, body) {
+      var _ = { label: 0, sent: function() {
+        if (t[0] & 1) throw t[1];
+        return t[1];
+      }, trys: [], ops: [] }, f, y, t, g;
+      return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() {
+        return this;
+      }), g;
+      function verb(n) {
+        return function(v) {
+          return step([n, v]);
+        };
+      }
+      function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+          if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+          if (y = 0, t) op = [op[0] & 2, t.value];
+          switch (op[0]) {
+            case 0:
+            case 1:
+              t = op;
+              break;
+            case 4:
+              _.label++;
+              return { value: op[1], done: false };
+            case 5:
+              _.label++;
+              y = op[1];
+              op = [0];
+              continue;
+            case 7:
+              op = _.ops.pop();
+              _.trys.pop();
+              continue;
+            default:
+              if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                _ = 0;
+                continue;
+              }
+              if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+                _.label = op[1];
+                break;
+              }
+              if (op[0] === 6 && _.label < t[1]) {
+                _.label = t[1];
+                t = op;
+                break;
+              }
+              if (t && _.label < t[2]) {
+                _.label = t[2];
+                _.ops.push(op);
+                break;
+              }
+              if (t[2]) _.ops.pop();
+              _.trys.pop();
+              continue;
+          }
+          op = body.call(thisArg, _);
+        } catch (e) {
+          op = [6, e];
+          y = 0;
+        } finally {
+          f = t = 0;
+        }
+        if (op[0] & 5) throw op[1];
+        return { value: op[0] ? op[1] : void 0, done: true };
+      }
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.ensureServerVersionAtLeast = exports2.isServerVersionAtLeast = exports2.isLocalOctopusVersion = void 0;
+    var semver_1 = require_semver2();
+    function isLocalOctopusVersion(version) {
+      return /^0\.0\.0(?:[-+].*)?$/.test(version);
+    }
+    exports2.isLocalOctopusVersion = isLocalOctopusVersion;
+    function isServerVersionAtLeast(serverVersion, minimumVersion) {
+      if (isLocalOctopusVersion(serverVersion))
+        return true;
+      if (!(0, semver_1.valid)(serverVersion))
+        return false;
+      return !(0, semver_1.lt)(serverVersion, minimumVersion);
+    }
+    exports2.isServerVersionAtLeast = isServerVersionAtLeast;
+    function ensureServerVersionAtLeast(client, minimumVersion, featureDescription) {
+      var _a;
+      return __awaiter2(this, void 0, void 0, function() {
+        var serverInformation, message;
+        return __generator(this, function(_b) {
+          switch (_b.label) {
+            case 0:
+              return [4, client.getServerInformation()];
+            case 1:
+              serverInformation = _b.sent();
+              if (isServerVersionAtLeast(serverInformation.version, minimumVersion))
+                return [
+                  2
+                  /*return*/
+                ];
+              message = "The Octopus instance doesn't support ".concat(featureDescription, ", it will need to be upgraded to at least ").concat(minimumVersion, " in order to access this API.");
+              (_a = client.error) === null || _a === void 0 ? void 0 : _a.call(client, message);
+              throw new Error(message);
+          }
+        });
+      });
+    }
+    exports2.ensureServerVersionAtLeast = ensureServerVersionAtLeast;
+  }
+});
+
 // node_modules/@octopusdeploy/api-client/dist/features/projects/releases/deployments/deploymentRepository.js
 var require_deploymentRepository = __commonJS({
   "node_modules/@octopusdeploy/api-client/dist/features/projects/releases/deployments/deploymentRepository.js"(exports2) {
@@ -47944,7 +48159,7 @@ var require_deploymentRepository = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DeploymentRepository = void 0;
     var __1 = require_dist2();
-    var semver_1 = require_semver2();
+    var versionCheck_1 = require_versionCheck();
     var DeploymentRepository = (
       /** @class */
       function() {
@@ -47960,23 +48175,18 @@ var require_deploymentRepository = __commonJS({
           return this.client.request("".concat(this.baseApiPathTemplate, "{?skip,take,ids,projects,environments,tenants,channels,taskState}"), __assign({ spaceName: this.spaceName }, args));
         };
         DeploymentRepository2.prototype.create = function(command) {
-          var _a, _b;
           return __awaiter2(this, void 0, void 0, function() {
-            var serverInformation, response, mappedTasks;
-            return __generator(this, function(_c) {
-              switch (_c.label) {
+            var response, mappedTasks;
+            return __generator(this, function(_a) {
+              switch (_a.label) {
                 case 0:
-                  return [4, this.client.getServerInformation()];
+                  return [4, (0, versionCheck_1.ensureServerVersionAtLeast)(this.client, "2022.3.5512", "deploying releases using the Executions API")];
                 case 1:
-                  serverInformation = _c.sent();
-                  if ((0, semver_1.lt)(serverInformation.version, "2022.3.5512")) {
-                    (_b = (_a = this.client).error) === null || _b === void 0 ? void 0 : _b.call(_a, "The Octopus instance doesn't support deploying releases using the Executions API, it will need to be upgraded to at least 2022.3.5512 in order to access this API.");
-                    throw new Error("The Octopus instance doesn't support deploying releases using the Executions API, it will need to be upgraded to at least 2022.3.5512 in order to access this API.");
-                  }
+                  _a.sent();
                   this.client.debug("Deploying a release...");
                   return [4, this.client.doCreate("".concat(this.baseApiPathTemplate, "/create/untenanted/v1"), __assign({ spaceIdOrName: command.spaceName }, command))];
                 case 2:
-                  response = _c.sent();
+                  response = _a.sent();
                   if (response.DeploymentServerTasks.length == 0) {
                     throw new Error("No server task details returned");
                   }
@@ -47997,23 +48207,18 @@ var require_deploymentRepository = __commonJS({
           });
         };
         DeploymentRepository2.prototype.createTenanted = function(command) {
-          var _a, _b;
           return __awaiter2(this, void 0, void 0, function() {
-            var serverInformation, response, mappedTasks;
-            return __generator(this, function(_c) {
-              switch (_c.label) {
+            var response, mappedTasks;
+            return __generator(this, function(_a) {
+              switch (_a.label) {
                 case 0:
-                  return [4, this.client.getServerInformation()];
+                  return [4, (0, versionCheck_1.ensureServerVersionAtLeast)(this.client, "2022.3.5512", "deploying tenanted releases using the Executions API")];
                 case 1:
-                  serverInformation = _c.sent();
-                  if ((0, semver_1.lt)(serverInformation.version, "2022.3.5512")) {
-                    (_b = (_a = this.client).error) === null || _b === void 0 ? void 0 : _b.call(_a, "The Octopus instance doesn't support deploying tenanted releases using the Executions API, it will need to be upgraded to at least 2022.3.5512 in order to access this API.");
-                    throw new Error("The Octopus instance doesn't support deploying tenanted releases using the Executions API, it will need to be upgraded to at least 2022.3.5512 in order to access this API.");
-                  }
+                  _a.sent();
                   this.client.debug("Deploying a tenanted release...");
                   return [4, this.client.doCreate("".concat(this.baseApiPathTemplate, "/create/tenanted/v1"), __assign({ spaceIdOrName: command.spaceName }, command))];
                 case 2:
-                  response = _c.sent();
+                  response = _a.sent();
                   if (response.DeploymentServerTasks.length == 0) {
                     throw new Error("No server task details returned");
                   }
@@ -48223,7 +48428,7 @@ var require_releaseRepository = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ReleaseRepository = void 0;
     var __1 = require_dist2();
-    var semver_1 = require_semver2();
+    var versionCheck_1 = require_versionCheck();
     var ReleaseRepository = (
       /** @class */
       function() {
@@ -48232,23 +48437,18 @@ var require_releaseRepository = __commonJS({
           this.spaceName = spaceName;
         }
         ReleaseRepository2.prototype.create = function(command) {
-          var _a, _b;
           return __awaiter2(this, void 0, void 0, function() {
-            var serverInformation, response;
-            return __generator(this, function(_c) {
-              switch (_c.label) {
+            var response;
+            return __generator(this, function(_a) {
+              switch (_a.label) {
                 case 0:
-                  return [4, this.client.getServerInformation()];
+                  return [4, (0, versionCheck_1.ensureServerVersionAtLeast)(this.client, "2022.3.5512", "creating releases using the Executions API")];
                 case 1:
-                  serverInformation = _c.sent();
-                  if ((0, semver_1.lt)(serverInformation.version, "2022.3.5512")) {
-                    (_b = (_a = this.client).error) === null || _b === void 0 ? void 0 : _b.call(_a, "The Octopus instance doesn't support creating releases using the Executions API, it will need to be upgraded to at least 2022.3.5512 in order to access this API.");
-                    throw new Error("The Octopus instance doesn't support creating releases using the Executions API, it will need to be upgraded to at least 2022.3.5512 in order to access this API.");
-                  }
+                  _a.sent();
                   this.client.debug("Creating a release...");
                   return [4, this.client.doCreate("".concat(__1.spaceScopedRoutePrefix, "/releases/create/v1"), __assign({ spaceIdOrName: command.spaceName }, command))];
                 case 2:
-                  response = _c.sent();
+                  response = _a.sent();
                   this.client.debug("Release created successfully.");
                   return [2, response];
               }
@@ -48443,7 +48643,7 @@ var require_runbookRunRepository = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RunbookRunRepository = void 0;
     var spaceScopedRoutePrefix_1 = require_spaceScopedRoutePrefix();
-    var semver_1 = require_semver2();
+    var versionCheck_1 = require_versionCheck();
     var RunbookRunRepository2 = (
       /** @class */
       function() {
@@ -48459,23 +48659,18 @@ var require_runbookRunRepository = __commonJS({
           return this.client.request("".concat(this.baseApiPathTemplate, "{?skip,take,ids,projects,environments,tenants,runbooks,taskState,partialName}"), __assign({ spaceName: this.spaceName }, args));
         };
         RunbookRunRepository3.prototype.create = function(command) {
-          var _a, _b;
           return __awaiter2(this, void 0, void 0, function() {
-            var serverInformation, response, mappedTasks;
-            return __generator(this, function(_c) {
-              switch (_c.label) {
+            var response, mappedTasks;
+            return __generator(this, function(_a) {
+              switch (_a.label) {
                 case 0:
-                  return [4, this.client.getServerInformation()];
+                  return [4, (0, versionCheck_1.ensureServerVersionAtLeast)(this.client, "2022.3.5512", "running runbooks using the Executions API")];
                 case 1:
-                  serverInformation = _c.sent();
-                  if ((0, semver_1.lt)(serverInformation.version, "2022.3.5512")) {
-                    (_b = (_a = this.client).error) === null || _b === void 0 ? void 0 : _b.call(_a, "The Octopus instance doesn't support running runbooks using the Executions API, it will need to be upgraded to at least 2022.3.5512 in order to access this API.");
-                    throw new Error("The Octopus instance doesn't support running runbooks using the Executions API, it will need to be upgraded to at least 2022.3.5512 in order to access this API.");
-                  }
+                  _a.sent();
                   this.client.debug("Running a runbook...");
                   return [4, this.client.doCreate("".concat(spaceScopedRoutePrefix_1.spaceScopedRoutePrefix, "/runbook-runs/create/v1"), __assign({ spaceIdOrName: command.spaceName }, command))];
                 case 2:
-                  response = _c.sent();
+                  response = _a.sent();
                   if (response.RunbookRunServerTasks.length == 0) {
                     throw new Error("No server task details returned");
                   }
@@ -48496,23 +48691,18 @@ var require_runbookRunRepository = __commonJS({
           });
         };
         RunbookRunRepository3.prototype.createGit = function(command, gitRef) {
-          var _a, _b;
           return __awaiter2(this, void 0, void 0, function() {
-            var serverInformation, response, mappedTasks;
-            return __generator(this, function(_c) {
-              switch (_c.label) {
+            var response, mappedTasks;
+            return __generator(this, function(_a) {
+              switch (_a.label) {
                 case 0:
-                  return [4, this.client.getServerInformation()];
+                  return [4, (0, versionCheck_1.ensureServerVersionAtLeast)(this.client, "2022.3.5512", "running runbooks using the Executions API")];
                 case 1:
-                  serverInformation = _c.sent();
-                  if ((0, semver_1.lt)(serverInformation.version, "2022.3.5512")) {
-                    (_b = (_a = this.client).error) === null || _b === void 0 ? void 0 : _b.call(_a, "The Octopus instance doesn't support running runbooks using the Executions API, it will need to be upgraded to at least 2022.3.5512 in order to access this API.");
-                    throw new Error("The Octopus instance doesn't support running runbooks using the Executions API, it will need to be upgraded to at least 2022.3.5512 in order to access this API.");
-                  }
+                  _a.sent();
                   this.client.debug("Running a runbook...");
                   return [4, this.client.doCreate("".concat(spaceScopedRoutePrefix_1.spaceScopedRoutePrefix, "/runbook-runs/git/create/v1"), __assign({ spaceIdOrName: command.spaceName, gitRef }, command))];
                 case 2:
-                  response = _c.sent();
+                  response = _a.sent();
                   if (response.RunbookRunServerTasks.length == 0) {
                     throw new Error("No server task details returned");
                   }
@@ -58655,6 +58845,7 @@ var require_dist2 = __commonJS({
     __exportStar(require_spaceScopedRoutePrefix(), exports2);
     __exportStar(require_subscriptionRecord(), exports2);
     __exportStar(require_utils3(), exports2);
+    __exportStar(require_versionCheck(), exports2);
   }
 });
 
