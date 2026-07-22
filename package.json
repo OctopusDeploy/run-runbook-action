@@ -5,8 +5,7 @@
   },
   "dependencies": {
     "@actions/core": "3.0.1",
-    "@octopusdeploy/api-client": "3.11.5",
-    "axios": "^1.17.0"
+    "@octopusdeploy/api-client": "3.11.6"
   },
   "description": "GitHub Action to Run a Runbook in Octopus Deploy",
   "devDependencies": {
