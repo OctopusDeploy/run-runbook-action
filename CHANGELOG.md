@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.0.3](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.2...v4.0.3) (2026-07-22)
+
+
+### Bug Fixes
+
+* **deps:** bump @octopusdeploy/api-client to 3.11.5 ([#591](https://github.com/OctopusDeploy/run-runbook-action/issues/591)) ([076908b](https://github.com/OctopusDeploy/run-runbook-action/commit/076908b56f804223c44823b1368297c9ae599aba))
+* **deps:** bump @octopusdeploy/api-client to 3.11.6 ([#597](https://github.com/OctopusDeploy/run-runbook-action/issues/597)) ([e203275](https://github.com/OctopusDeploy/run-runbook-action/commit/e203275da71e4374748912c0f7a31d72dbcf6523))
+* **deps:** update js-yaml to resolve DoS advisory ([#596](https://github.com/OctopusDeploy/run-runbook-action/issues/596)) ([967b8c1](https://github.com/OctopusDeploy/run-runbook-action/commit/967b8c1f72103c3b923b5db774718b158a741a2c))
+
 ## [4.0.2](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.1...v4.0.2) (2026-06-08)
 
 
