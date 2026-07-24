@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.0.4](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.3...v4.0.4) (2026-07-24)
+
+
+### Bug Fixes
+
+* **deps:** bump brace-expansion to resolve DoS advisory ([#599](https://github.com/OctopusDeploy/run-runbook-action/issues/599)) ([24c7dab](https://github.com/OctopusDeploy/run-runbook-action/commit/24c7daba171e02d8e6411556e4ec0b4947fa3d58))
+* **deps:** resolve remaining npm audit advisories ([#601](https://github.com/OctopusDeploy/run-runbook-action/issues/601)) ([e6a6b9b](https://github.com/OctopusDeploy/run-runbook-action/commit/e6a6b9b7bb07caf5f5e92977bbeded4cba15a46e))
+
 ## [4.0.3](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.2...v4.0.3) (2026-07-22)
 
 
