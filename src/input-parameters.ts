@@ -20,6 +20,7 @@ export interface InputParameters {
   apiKey?: string
   accessToken?: string
   space: string
+  gitRef?: string
 }
 
 export function getInputParameters(): InputParameters {
@@ -44,7 +45,8 @@ export function getInputParameters(): InputParameters {
     tenants: getMultilineInput('tenants').map(p => p.trim()) || undefined,
     tenantTags: getMultilineInput('tenant_tags').map(p => p.trim()) || undefined,
     useGuidedFailure: getBooleanInput('use_guided_failure') || undefined,
-    variables: variablesMap
+    variables: variablesMap,
+    gitRef: getInput('git_ref') || undefined
   }
 
   const errors: string[] = []

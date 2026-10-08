@@ -20,7 +20,7 @@ inputs:
   tenant_tags:
     description: 'A multi-line list of tenant tags (canonical names) to use to locate tenants to deploy to.'
   use_guided_failure:
-    default: false
+    default: 'false'
     description: 'Whether to use guided failure mode if errors occur during the deployment.'
   variables:
     description: 'A multi-line list of prompted variable values. Format: name:value'
@@ -30,11 +30,13 @@ inputs:
     description: 'The API key used to access Octopus Deploy. An API key is required, but you may also use the OCTOPUS_API_KEY environment variable. It is strongly recommended that this value retrieved from a GitHub secret.'
   space:
     description: 'The name of a space within which this command will be executed. The space name is required, but you may also use the OCTOPUS_SPACE environment variable.'
+  git_ref:
+    description: 'The Git Reference on which to run the Runbook. If not populate the action assumes you are running a DB Runbook. In most cases when running a Git Runbook this will be your default branch refs/heads/main'
 
 outputs:
   server_tasks:
     description: 'JSON string for an array of objects having a `serverTaskId` and an `environmentName`, and optionally a `tenantName`'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'

@@ -1,3 +1,4 @@
+import { RunGitRunbookCommand } from '@octopusdeploy/api-client/dist/features/projects/runbooks/runs/RunGitRunbookCommand'
 import { InputParameters } from './input-parameters'
 import {
   Client,
@@ -18,6 +19,37 @@ export interface RunbookRunResult {
 export async function runRunbookFromInputs(client: Client, parameters: InputParameters): Promise<RunbookRunResult[]> {
   client.info('🐙 Running runbooks in Octopus Deploy...')
 
+  if (parameters.gitRef) {
+    return await runGitRunbookFromInputs(client, parameters)
+  }
+
+  return await runDbRunbookFromInputs(client, parameters)
+}
+
+async function runGitRunbookFromInputs(client: Client, parameters: InputParameters): Promise<RunbookRunResult[]> {
+  const command: RunGitRunbookCommand = {
+    spaceName: parameters.space,
+    ProjectName: parameters.project,
+    RunbookName: parameters.runbook,
+    EnvironmentNames: parameters.environments,
+    Tenants: parameters.tenants,
+    TenantTags: parameters.tenantTags,
+    UseGuidedFailure: parameters.useGuidedFailure,
+    Variables: parameters.variables
+  }
+
+  if (!parameters.gitRef) {
+    throw new Error('gitRef is required for running a Git runbook.')
+  }
+
+  const runbookRunRepository = new RunbookRunRepository(client, parameters.space)
+
+  const response = await runbookRunRepository.createGit(command, parameters.gitRef)
+
+  return await parseResult(client, response, runbookRunRepository, parameters)
+}
+
+async function runDbRunbookFromInputs(client: Client, parameters: InputParameters): Promise<RunbookRunResult[]> {
   const command: CreateRunbookRunCommandV1 = {
     spaceName: parameters.space,
     ProjectName: parameters.project,
@@ -32,6 +64,22 @@ export async function runRunbookFromInputs(client: Client, parameters: InputPara
   const runbookRunRepository = new RunbookRunRepository(client, parameters.space)
   const response = await runbookRunRepository.create(command)
 
+  return await parseResult(client, response, runbookRunRepository, parameters)
+}
+
+interface CreateRunbookRunResponse {
+  RunbookRunServerTasks: {
+    RunbookRunId: string
+    ServerTaskId: string
+  }[]
+}
+
+async function parseResult(
+  client: Client,
+  response: CreateRunbookRunResponse,
+  runbookRunRepository: RunbookRunRepository,
+  parameters: InputParameters
+): Promise<RunbookRunResult[]> {
   client.info(
     `🎉 ${response.RunbookRunServerTasks.length} Runbook run${
       response.RunbookRunServerTasks.length > 1 ? 's' : ''

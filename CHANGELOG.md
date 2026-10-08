@@ -1,5 +1,79 @@
 # Changelog
 
+## [4.0.6](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.5...v4.0.6) (2026-10-05)
+
+
+### Bug Fixes
+
+* **deps:** resolve npm audit advisories ([#618](https://github.com/OctopusDeploy/run-runbook-action/issues/618)) ([c777955](https://github.com/OctopusDeploy/run-runbook-action/commit/c7779551bb035821a650e771a1925962cdf3b9f8))
+
+## [4.0.5](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.4...v4.0.5) (2026-09-21)
+
+
+### Bug Fixes
+
+* **deps:** resolve npm audit advisories ([#612](https://github.com/OctopusDeploy/run-runbook-action/issues/612)) ([ea410df](https://github.com/OctopusDeploy/run-runbook-action/commit/ea410dfe7987edc1a97b0e60b6ad4acddfca58d0))
+
+## [4.0.4](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.3...v4.0.4) (2026-09-04)
+
+
+### Bug Fixes
+
+* **deps:** bump brace-expansion override to resolve DoS bypass ([#605](https://github.com/OctopusDeploy/run-runbook-action/issues/605)) ([be8114a](https://github.com/OctopusDeploy/run-runbook-action/commit/be8114a271884888fdbcaead090978d22cd69c63))
+* **deps:** bump brace-expansion to resolve DoS advisory ([#599](https://github.com/OctopusDeploy/run-runbook-action/issues/599)) ([24c7dab](https://github.com/OctopusDeploy/run-runbook-action/commit/24c7daba171e02d8e6411556e4ec0b4947fa3d58))
+* **deps:** resolve new brace-expansion and js-yaml advisories ([#603](https://github.com/OctopusDeploy/run-runbook-action/issues/603)) ([a7abcd1](https://github.com/OctopusDeploy/run-runbook-action/commit/a7abcd188ab03fad5cbd0a21cbcaff037a0121bc))
+* **deps:** resolve remaining npm audit advisories ([#601](https://github.com/OctopusDeploy/run-runbook-action/issues/601)) ([e6a6b9b](https://github.com/OctopusDeploy/run-runbook-action/commit/e6a6b9b7bb07caf5f5e92977bbeded4cba15a46e))
+
+## [4.0.3](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.2...v4.0.3) (2026-07-22)
+
+
+### Bug Fixes
+
+* **deps:** bump @octopusdeploy/api-client to 3.11.5 ([#591](https://github.com/OctopusDeploy/run-runbook-action/issues/591)) ([076908b](https://github.com/OctopusDeploy/run-runbook-action/commit/076908b56f804223c44823b1368297c9ae599aba))
+* **deps:** bump @octopusdeploy/api-client to 3.11.6 ([#597](https://github.com/OctopusDeploy/run-runbook-action/issues/597)) ([e203275](https://github.com/OctopusDeploy/run-runbook-action/commit/e203275da71e4374748912c0f7a31d72dbcf6523))
+* **deps:** update js-yaml to resolve DoS advisory ([#596](https://github.com/OctopusDeploy/run-runbook-action/issues/596)) ([967b8c1](https://github.com/OctopusDeploy/run-runbook-action/commit/967b8c1f72103c3b923b5db774718b158a741a2c))
+
+## [4.0.2](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.1...v4.0.2) (2026-06-08)
+
+
+### Bug Fixes
+
+* update axios to v1.17.0 ([#578](https://github.com/OctopusDeploy/run-runbook-action/issues/578)) ([2a1bbcf](https://github.com/OctopusDeploy/run-runbook-action/commit/2a1bbcf30661e3449921bd4def0d46cc204256b3))
+
+## [4.0.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.0...v4.0.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **deps:** Resolve dependency security alerts ([#562](https://github.com/OctopusDeploy/run-runbook-action/issues/562)) ([e35a423](https://github.com/OctopusDeploy/run-runbook-action/commit/e35a4239c6e0bc1b038ab75ae7e3ec78a420cfd0))
+* **deps:** Update core/actions to v3 ([#559](https://github.com/OctopusDeploy/run-runbook-action/issues/559)) ([18942b6](https://github.com/OctopusDeploy/run-runbook-action/commit/18942b6dfaf0d7410a24c7882ffcff46007a1f67))
+
+## [4.0.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.3.1...v4.0.0) (2025-12-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* Update node to node 24 ([#509](https://github.com/OctopusDeploy/run-runbook-action/issues/509))
+
+### Features
+
+* Update node to node 24 ([#509](https://github.com/OctopusDeploy/run-runbook-action/issues/509)) ([0ba8a34](https://github.com/OctopusDeploy/run-runbook-action/commit/0ba8a3434c61063e3d290545ab1a4e67f8ce9f0b))
+
+## [3.3.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.3.0...v3.3.1) (2025-03-12)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @actions/core to v1.11.1 ([#415](https://github.com/OctopusDeploy/run-runbook-action/issues/415)) ([fab4b76](https://github.com/OctopusDeploy/run-runbook-action/commit/fab4b769c78e06838f6255e3ff0b81e05e6a5376))
+* **deps:** update dependency @octopusdeploy/api-client to v3.5.2 ([#449](https://github.com/OctopusDeploy/run-runbook-action/issues/449)) ([fedfea0](https://github.com/OctopusDeploy/run-runbook-action/commit/fedfea0bc9ac5ec06b373dd0f0d924506425bf9c))
+
+## [3.3.0](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.2.1...v3.3.0) (2024-12-18)
+
+
+### Features
+
+* Added Git Runbook support ([#432](https://github.com/OctopusDeploy/run-runbook-action/issues/432)) ([5d47e3d](https://github.com/OctopusDeploy/run-runbook-action/commit/5d47e3d695793db309166fa556fa90b8f5d3c1da))
+
 ## [3.2.1](https://github.com/OctopusDeploy/run-runbook-action/compare/v3.2.0...v3.2.1) (2024-02-04)
 
 
