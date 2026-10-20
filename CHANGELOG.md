@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.7](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.6...v4.0.7) (2026-10-20)
+
+
+### Bug Fixes
+
+* **deps:** resolve npm audit advisories ([#623](https://github.com/OctopusDeploy/run-runbook-action/issues/623)) ([03d9e3a](https://github.com/OctopusDeploy/run-runbook-action/commit/03d9e3af929f2b27d7993f650d89f5aa313f8d0a))
+
 ## [4.0.6](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.5...v4.0.6) (2026-10-05)
 
 
