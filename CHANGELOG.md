@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.8](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.7...v4.0.8) (2026-10-29)
+
+
+### Bug Fixes
+
+* **deps:** bump undici from 6.29.0 to 6.29.1 ([6f78181](https://github.com/OctopusDeploy/run-runbook-action/commit/6f781819d339415a382b40d050903a16e3458683))
+
 ## [4.0.7](https://github.com/OctopusDeploy/run-runbook-action/compare/v4.0.6...v4.0.7) (2026-10-20)
 
 
