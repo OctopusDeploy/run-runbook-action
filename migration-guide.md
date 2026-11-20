@@ -24,9 +24,9 @@ Please note that the the following input parameters have been removed in v2 of t
 - skip
 - specific_machines
 - tenant
-- tenants
+- tenants (added back in v3, see the README)
 - tenant_tag
-- tenant_tags
+- tenant_tags (added back in v3, see the README)
 - timeout
 - username
 - variable
