@@ -32,6 +32,27 @@ steps:
         Test
 ```
 
+To run a tenanted runbook, list the tenants to run it for. You can also select tenants by tenant tag:
+
+```yml
+steps:
+  - name: Run a runbook for tenants in Octopus Deploy 🐙
+    uses: OctopusDeploy/run-runbook-action@v4
+    env:
+      OCTOPUS_API_KEY: ${{ secrets.API_KEY  }}
+      OCTOPUS_URL: ${{ secrets.SERVER }}
+      OCTOPUS_SPACE: 'Outer Space'
+    with:
+      project: 'Test Project'
+      runbook: 'Test Runbook'
+      environments: |
+        Production
+      tenants: |
+        Customer A
+      tenant_tags: |
+        Region/Australia
+```
+
 ## ✍️ Environment Variables
 
 | Name              | Description                                                                                                                                          |
@@ -47,6 +68,8 @@ steps:
 | `project`      | **Required.** The name of the project associated with this runbook.                                                                                                                                                        |
 | `runbook`      | **Required.** The name of the runbook.                                                                                                                                                                                     |
 | `environments` | **Required.** A list of environments in Octopus Deploy in which to run (i.e. Dev, Test, Prod). Each environment should be added on a new line.                                                                             |
+| `tenants`      | A list of tenants in Octopus Deploy to run the runbook for. Each tenant name should be added on a new line.                                                                                                                |
+| `tenant_tags`  | A list of tenant tags (canonical names, i.e. `Region/Australia`) used to find the tenants to run the runbook for. Each tag should be added on a new line.                                                                  |
 | `variables`    | A multi-line list of prompted variable values. Format: name:value.                                                                                                                                                         |
 | `server`       | The instance URL hosting Octopus Deploy (i.e. "<https://octopus.example.com/>"). The instance URL is required, but you may also use the OCTOPUS_URL environment variable.                                                  |
 | `api_key`      | The API key used to access Octopus Deploy. An API key is required, but you may also use the OCTOPUS_API_KEY environment variable. It is strongly recommended that this value retrieved from a GitHub secret.               |
