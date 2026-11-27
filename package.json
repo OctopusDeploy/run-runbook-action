@@ -30,7 +30,7 @@
     "prettier": "2.8.8",
     "tmp": "0.2.7",
     "ts-jest": "29.4.15",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   },
   "homepage": "https://github.com/OctopusDeploy/run-runbook-action#readme",
   "jest": {
